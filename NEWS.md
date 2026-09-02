@@ -1,8 +1,5 @@
 # shapvalues 0.1.1
 
-* Plots now use `ggplot2::theme_gray()` as their base (grey panel, white grid),
-  with only text colours and the title position adjusted to the package
-  neutrals. The compass keeps its blank frame.
 * New multivariate attribution views:
   - `sv_compass()` places each observation where its attribution mass points;
     distance from the centre is the explanation concentration index `EC`.
