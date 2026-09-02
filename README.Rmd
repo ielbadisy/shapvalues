@@ -4,18 +4,20 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+  collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE,
+  fig.path = "man/figures/README-", fig.retina = 2, dpi = 140,
+  fig.width = 7, fig.height = 4.4, out.width = "100%"
 )
+options(width = 90)
+set.seed(1)
 ```
 
 # shapvalues
 
 <!-- badges: start -->
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 `shapvalues` computes Shapley additive explanations (SHAP) for the predictions
@@ -24,46 +26,116 @@ regression, binary and multiclass classification, and right-censored survival
 analysis with time-dependent attributions.
 
 The sampling (permutation) estimator is used: every coalition prediction is
-issued in one batched call, and the marginal-contribution reduction runs in
-parallel C++ via `RcppParallel`.
+issued in **one batched call**, and the marginal-contribution reduction runs
+in parallel C++ via `RcppParallel`. Pairwise interaction values are available.
+Alongside the familiar plots, the package ships three opinionated multivariate
+views and one colour system with selectable styles.
 
 ## Installation
 
-```{r, eval = FALSE}
+```{r install, eval = FALSE}
 # install.packages("pak")
 pak::pak("ielbadisy/shapvalues")
 ```
 
-## Usage
+## Quick start
 
-```{r, eval = FALSE}
+```{r quickstart}
 library(shapvalues)
 
 fit <- lm(mpg ~ ., data = mtcars)
-sv  <- shapvalues(fit, X = mtcars[, -1], bg = mtcars[, -1], nsim = 50)
-
+sv  <- shapvalues(fit, X = mtcars[, -1], bg = mtcars[, -1], nsim = 100)
 sv
-sv_importance_table(sv)
+```
+
+Local accuracy holds exactly for the Monte Carlo estimate:
+
+```{r localacc}
+max(abs(rowSums(sv$phi) + sv$baseline - sv$prediction[, 1]))
+```
+
+## Standard plots
+
+```{r beeswarm}
 sv_beeswarm(sv)
+```
+
+```{r importance, fig.height = 3.6}
+sv_importance(sv)
+```
+
+```{r waterfall}
 sv_waterfall(sv, row = 1)
 ```
 
-For a model class `shapvalues` does not know, pass a `pred_fun`:
-
-```{r, eval = FALSE}
-pf <- function(object, newdata) predict(object, newdata, type = "response")
-sv <- shapvalues(fit, X = X, bg = bg, pred_fun = pf, task = "classification")
+```{r dependence}
+sv_dependence(sv, feature = "wt", colour_by = "hp")
 ```
 
-Survival models return one attribution per feature per time point:
+## Pairwise interaction values
 
-```{r, eval = FALSE}
-pf <- function(object, newdata, times) {
-  s <- summary(survival::survfit(object, newdata = newdata),
-               times = times, extend = TRUE)$surv
+```{r interaction}
+svi <- shapvalues(lm(mpg ~ wt * hp + disp + drat + qsec, data = mtcars),
+                  mtcars[, c("wt", "hp", "disp", "drat", "qsec")],
+                  mtcars[, c("wt", "hp", "disp", "drat", "qsec")],
+                  nsim = 120, interactions = TRUE)
+sv_interaction(svi, feature = "wt", interact = "hp")
+```
+
+## Survival: SurvSHAP(t)
+
+```{r survival}
+library(survival)
+cox <- coxph(Surv(time, status) ~ age + karno + celltype, data = veteran, x = TRUE)
+pf  <- function(object, newdata, times) {
+  s <- summary(survfit(object, newdata = newdata), times = times, extend = TRUE)$surv
   t(matrix(s, nrow = length(times)))
 }
-sv <- shapvalues(cox_fit, X = X, bg = bg, pred_fun = pf,
-                 times = c(30, 90, 180, 365), task = "survival")
-sv_surv(sv, row = 1)
+svs <- shapvalues(cox, veteran[, c("age", "karno", "celltype")],
+                  veteran[, c("age", "karno", "celltype")], pred_fun = pf,
+                  times = c(30, 90, 180, 270, 365), task = "survival", nsim = 60)
+sv_surv(svs, row = 1)
 ```
+
+## Multivariate attribution views
+
+These summarise the whole attribution vector of each observation rather than
+marginalising one feature at a time.
+
+**Compass** — each observation sits where its `|SHAP|` mass points; distance
+from the centre is the explanation concentration `EC` in `[0, 1]`.
+
+```{r compass, fig.height = 5.4}
+sv_compass(sv)
+```
+
+**Fingerprint** — a radial `|SHAP|` signature, here one per k-means cluster of
+the SHAP profiles.
+
+```{r fingerprint, fig.height = 3.4}
+sv_fingerprint(sv, k = 3)
+```
+
+**Pathway** — an alluvial of the top-ranked contributors: node = feature, flow
+width = observations, flow colour = the sign of the dominant contribution.
+
+```{r pathway, fig.height = 4.4}
+sv_pathway(sv, rank = 3)
+```
+
+## One colour system, selectable styles
+
+Every plot draws from `sv_style()`: the package's own diverging pair, or a
+`viridisLite` map.
+
+```{r styles, fig.width = 7, fig.height = 3, fig.show = "hold", out.width = "50%"}
+sv_beeswarm(sv, max_features = 6, title = "style = \"shapvalues\"")
+sv_beeswarm(sv, max_features = 6, title = "style = \"plasma\"", style = "plasma")
+```
+
+## Benchmark
+
+`shapvalues` is the fastest model-agnostic SHAP estimator on CRAN in the tests
+under `inst/benchmarks/` (3-6x faster than `fastshap`, 10-25x faster than
+`kernelshap`, at accuracy on par with `fastshap`). Run
+`Rscript inst/benchmarks/bench-shapvalues.R` to reproduce.
