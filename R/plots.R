@@ -10,9 +10,28 @@
          call. = FALSE)
 }
 
-## clean frame: white ground, no grid or border, light-grey axis lines only.
-.sv_theme <- function(base_size = 12, y_axis = FALSE) {
-  th <- ggplot2::theme_minimal(base_size = base_size) +
+#' The shapvalues plot theme
+#'
+#' The clean frame every `sv_*` plot uses by default: a white panel with no
+#' grid or border and light-grey axis lines. Exported so it can be re-applied
+#' after other tweaks, or used on your own plots. Every `sv_*` function returns
+#' a plain `ggplot` object, so you may also drop this theme and add any
+#' `ggplot2::theme_*()` afterwards with `+`.
+#'
+#' @param base_size Base font size, in points.
+#' @return A `ggplot2` theme object.
+#' @examples
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   library(ggplot2)
+#'   ggplot(mtcars, aes(wt, mpg)) + geom_point() + theme_shapvalues()
+#'
+#'   fit <- lm(mpg ~ ., data = mtcars)
+#'   sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
+#'   sv_beeswarm(sv) + theme_bw()          # swap in any ggplot2 theme
+#' }
+#' @export
+theme_shapvalues <- function(base_size = 12) {
+  ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
       panel.grid        = ggplot2::element_blank(),
       panel.border      = ggplot2::element_blank(),
@@ -32,6 +51,11 @@
       legend.key        = ggplot2::element_blank(),
       plot.margin       = ggplot2::margin(10, 14, 8, 10)
     )
+}
+
+## internal wrapper: the exported theme plus an optional left axis line
+.sv_theme <- function(base_size = 12, y_axis = FALSE) {
+  th <- theme_shapvalues(base_size)
   if (y_axis)
     th <- th + ggplot2::theme(
       axis.line.y  = ggplot2::element_line(colour = .sv_line, linewidth = 0.5),
