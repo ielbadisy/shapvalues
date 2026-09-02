@@ -1,5 +1,7 @@
 # shapvalues 0.1.1
 
+* `theme_shapvalues()` is exported. Every `sv_*` plot returns a plain `ggplot`
+  object, so you can re-theme it with any `ggplot2::theme_*()` via `+`.
 * New multivariate attribution views:
   - `sv_compass()` places each observation where its attribution mass points;
     distance from the centre is the explanation concentration index `EC`.
