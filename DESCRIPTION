@@ -36,6 +36,7 @@ Suggests:
     ggalluvial,
     ggplot2,
     knitr,
+    MASS,
     ranger,
     rmarkdown,
     survival,
