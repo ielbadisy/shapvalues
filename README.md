@@ -55,28 +55,41 @@ max(abs(rowSums(sv$phi) + sv$baseline - sv$prediction[, 1]))
 #> [1] 2.344791e-13
 ```
 
+## A larger model for the gallery
+
+The plots below use a random forest on the Boston housing data (506
+tracts, 13 features).
+
+``` r
+data(Boston, package = "MASS")
+rf  <- ranger::ranger(medv ~ ., data = Boston, num.trees = 400)
+pf  <- function(object, newdata) predict(object, newdata)$predictions
+svb <- shapvalues(rf, X = Boston[, -14], bg = Boston[, -14],
+                  pred_fun = pf, nsim = 60, bg_size = 200)
+```
+
 ## Standard plots
 
 ``` r
-sv_beeswarm(sv)
+sv_beeswarm(svb)
 ```
 
 <img src="man/figures/README-beeswarm-1.png" alt="" width="100%" />
 
 ``` r
-sv_importance(sv)
+sv_importance(svb)
 ```
 
 <img src="man/figures/README-importance-1.png" alt="" width="100%" />
 
 ``` r
-sv_waterfall(sv, row = 1)
+sv_waterfall(svb, row = 1)
 ```
 
 <img src="man/figures/README-waterfall-1.png" alt="" width="100%" />
 
 ``` r
-sv_dependence(sv, feature = "wt", colour_by = "hp")
+sv_dependence(svb, feature = "rm", colour_by = "lstat")
 ```
 
 <img src="man/figures/README-dependence-1.png" alt="" width="100%" />
@@ -120,7 +133,7 @@ distance from the centre is the explanation concentration `EC` in
 `[0, 1]`.
 
 ``` r
-sv_compass(sv)
+sv_compass(svb)
 ```
 
 <img src="man/figures/README-compass-1.png" alt="" width="100%" />
@@ -129,7 +142,7 @@ sv_compass(sv)
 cluster of the SHAP profiles.
 
 ``` r
-sv_fingerprint(sv, k = 3)
+sv_fingerprint(svb, k = 4)
 ```
 
 <img src="man/figures/README-fingerprint-1.png" alt="" width="100%" />
@@ -139,7 +152,7 @@ feature, flow width = observations, flow colour = the sign of the
 dominant contribution.
 
 ``` r
-sv_pathway(sv, rank = 3)
+sv_pathway(svb, rank = 3)
 ```
 
 <img src="man/figures/README-pathway-1.png" alt="" width="100%" />
@@ -150,8 +163,8 @@ Every plot draws from `sv_style()`: the package’s own diverging pair, or
 a `viridisLite` map.
 
 ``` r
-sv_beeswarm(sv, max_features = 6, title = "style = \"shapvalues\"")
-sv_beeswarm(sv, max_features = 6, title = "style = \"plasma\"", style = "plasma")
+sv_beeswarm(svb, max_features = 6, title = "style = \"shapvalues\"")
+sv_beeswarm(svb, max_features = 6, title = "style = \"plasma\"", style = "plasma")
 ```
 
 <img src="man/figures/README-styles-1.png" alt="" width="50%" /><img src="man/figures/README-styles-2.png" alt="" width="50%" />
