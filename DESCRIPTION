@@ -1,0 +1,47 @@
+Package: shapvalues
+Type: Package
+Title: Fast Model-Agnostic Shapley Additive Explanations
+Version: 0.1.1
+Authors@R: person("Imad", "El Badisy", email = "elbadisyimad@gmail.com", role = c("aut", "cre"))
+Description: Computes Shapley additive explanations (SHAP) for the predictions of
+    any supervised model through a single prediction callback, covering
+    regression, binary and multiclass classification, and right-censored
+    survival analysis with time-dependent attributions. The sampling
+    (permutation) estimator of Strumbelj and Kononenko (2014)
+    <doi:10.1007/s10115-013-0679-x> is used, with all coalition predictions
+    issued in one batched call and the marginal-contribution reduction run in
+    parallel 'C++' via 'RcppParallel'. Pairwise interaction values are
+    available. A native 'ggplot2' layer provides the usual beeswarm,
+    importance, waterfall, dependence and time-curve plots, plus opinionated
+    multivariate views (an attribution compass with an explanation
+    concentration index, radial fingerprints of explanation phenotypes, and
+    attribution pathways), all sharing one colour system with selectable
+    'viridisLite' styles.
+License: MIT + file LICENSE
+URL: https://github.com/ielbadisy/shapvalues
+BugReports: https://github.com/ielbadisy/shapvalues/issues
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports:
+    grDevices,
+    Rcpp,
+    RcppParallel,
+    stats,
+    utils,
+    viridisLite
+LinkingTo:
+    Rcpp,
+    RcppParallel
+Suggests:
+    ggalluvial,
+    ggplot2,
+    knitr,
+    ranger,
+    rmarkdown,
+    survival,
+    testthat (>= 3.0.0),
+    xgboost
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+SystemRequirements: C++17, GNU make
+RoxygenNote: 7.3.3
