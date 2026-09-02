@@ -216,18 +216,12 @@ sv_fingerprint <- function(x, rows = NULL, k = NULL, output = NULL,
     ggplot2::scale_colour_manual(
       values = c(Positive = pal$pos, Negative = pal$neg), name = NULL) +
     ggplot2::labs(x = NULL, y = "mean |SHAP|", title = title) +
-    ggplot2::theme_minimal(base_size = 11) +
+    .sv_theme(base_size = 11) +
     ggplot2::theme(
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.grid.major = ggplot2::element_line(colour = .sv_grid, linewidth = 0.4),
       panel.spacing = ggplot2::unit(14, "pt"),
-      axis.text.x = ggplot2::element_text(colour = .sv_axis, size = 7),
-      axis.text.y = ggplot2::element_blank(),
-      axis.title = ggplot2::element_text(colour = .sv_axis, size = 10),
-      strip.text = ggplot2::element_text(colour = .sv_ink, size = 10,
-                                         margin = ggplot2::margin(b = 6)),
-      plot.title = ggplot2::element_text(colour = .sv_ink, size = 13),
-      legend.text = ggplot2::element_text(colour = .sv_axis, size = 9))
+      axis.text.x   = ggplot2::element_text(colour = .sv_axis, size = 7),
+      axis.text.y   = ggplot2::element_blank(),
+      legend.text   = ggplot2::element_text(colour = .sv_axis, size = 9))
 }
 
 #' SHAP attribution pathways
