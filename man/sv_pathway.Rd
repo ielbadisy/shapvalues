@@ -19,14 +19,14 @@ sv_pathway(
 
 \item{rank}{Number of ranked contributors per observation (2 to 5).}
 
-\item{min_n}{Minimum observations for a pathway to be drawn. Default about
-1 percent of the explained rows.}
+\item{min_n}{Minimum observations for a pathway to be kept. Default about
+2 percent of the explained rows.}
 
 \item{output}{Which model output to show (name or index) when there is more
 than one. Defaults to the last class for classification, the first time for
 survival.}
 
-\item{signed}{If `TRUE`, split each node into `feature +` / `feature -`.}
+\item{signed}{If `TRUE`, split each node into `feature (+)` / `feature (-)`.}
 
 \item{title}{Optional plot title. `NULL` (default) draws none.}
 
