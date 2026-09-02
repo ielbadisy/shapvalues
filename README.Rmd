@@ -54,22 +54,35 @@ Local accuracy holds exactly for the Monte Carlo estimate:
 max(abs(rowSums(sv$phi) + sv$baseline - sv$prediction[, 1]))
 ```
 
+## A larger model for the gallery
+
+The plots below use a random forest on the Boston housing data (506 tracts,
+13 features).
+
+```{r boston}
+data(Boston, package = "MASS")
+rf  <- ranger::ranger(medv ~ ., data = Boston, num.trees = 400)
+pf  <- function(object, newdata) predict(object, newdata)$predictions
+svb <- shapvalues(rf, X = Boston[, -14], bg = Boston[, -14],
+                  pred_fun = pf, nsim = 60, bg_size = 200)
+```
+
 ## Standard plots
 
 ```{r beeswarm}
-sv_beeswarm(sv)
+sv_beeswarm(svb)
 ```
 
 ```{r importance, fig.height = 3.6}
-sv_importance(sv)
+sv_importance(svb)
 ```
 
 ```{r waterfall}
-sv_waterfall(sv, row = 1)
+sv_waterfall(svb, row = 1)
 ```
 
 ```{r dependence}
-sv_dependence(sv, feature = "wt", colour_by = "hp")
+sv_dependence(svb, feature = "rm", colour_by = "lstat")
 ```
 
 ## Pairwise interaction values
@@ -106,21 +119,21 @@ marginalising one feature at a time.
 from the centre is the explanation concentration `EC` in `[0, 1]`.
 
 ```{r compass, fig.height = 5.4}
-sv_compass(sv)
+sv_compass(svb)
 ```
 
 **Fingerprint** — a radial `|SHAP|` signature, here one per k-means cluster of
 the SHAP profiles.
 
 ```{r fingerprint, fig.height = 3.4}
-sv_fingerprint(sv, k = 3)
+sv_fingerprint(svb, k = 4)
 ```
 
 **Pathway** — an alluvial of the top-ranked contributors: node = feature, flow
 width = observations, flow colour = the sign of the dominant contribution.
 
 ```{r pathway, fig.height = 4.4}
-sv_pathway(sv, rank = 3)
+sv_pathway(svb, rank = 3)
 ```
 
 ## One colour system, selectable styles
@@ -129,8 +142,8 @@ Every plot draws from `sv_style()`: the package's own diverging pair, or a
 `viridisLite` map.
 
 ```{r styles, fig.width = 7, fig.height = 3, fig.show = "hold", out.width = "50%"}
-sv_beeswarm(sv, max_features = 6, title = "style = \"shapvalues\"")
-sv_beeswarm(sv, max_features = 6, title = "style = \"plasma\"", style = "plasma")
+sv_beeswarm(svb, max_features = 6, title = "style = \"shapvalues\"")
+sv_beeswarm(svb, max_features = 6, title = "style = \"plasma\"", style = "plasma")
 ```
 
 ## Benchmark
