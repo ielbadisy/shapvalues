@@ -239,9 +239,9 @@ sv_fingerprint <- function(x, rows = NULL, k = NULL, output = NULL,
 #'
 #' @inheritParams sv_beeswarm
 #' @param rank Number of ranked contributors per observation (2 to 5).
-#' @param min_n Minimum observations for a pathway to be drawn. Default about
-#'   1 percent of the explained rows.
-#' @param signed If `TRUE`, split each node into `feature +` / `feature -`.
+#' @param min_n Minimum observations for a pathway to be kept. Default about
+#'   2 percent of the explained rows.
+#' @param signed If `TRUE`, split each node into `feature (+)` / `feature (-)`.
 #' @return A `ggplot` object. Requires the \pkg{ggalluvial} package.
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
@@ -259,7 +259,7 @@ sv_pathway <- function(x, rank = 3L, min_n = NULL, output = NULL,
   o <- .sv_pick_output(x, output)
   phi <- .sv_slice(x, o)
   n <- nrow(phi)
-  if (is.null(min_n)) min_n <- max(2L, round(0.01 * n))
+  if (is.null(min_n)) min_n <- max(3L, round(0.02 * n))
 
   top <- t(apply(phi, 1L, function(r) {
     ix <- order(abs(r), decreasing = TRUE)[seq_len(rank)]
@@ -286,15 +286,18 @@ sv_pathway <- function(x, rank = 3L, min_n = NULL, output = NULL,
   if (dropped > 0L)
     message(sprintf("%d observations in pathways below min_n = %d not shown",
                     dropped, min_n))
+  lab_min <- 0.03 * sum(agg$nobs)                 # label only chunky strata
   ggplot2::ggplot(long, ggplot2::aes(x = factor(rank), y = nobs,
                                      stratum = node, alluvium = path_id,
                                      fill = dom)) +
-    ggalluvial::geom_alluvium(alpha = 0.55, width = 0.22, curve_type = "sigmoid") +
+    ggalluvial::geom_flow(width = 0.3, alpha = 0.62, curve_type = "sigmoid") +
     ggalluvial::geom_stratum(width = 0.3, fill = "white", colour = .sv_line,
                              linewidth = 0.4) +
     ggplot2::geom_text(stat = ggalluvial::StatStratum, size = 2.9,
                        colour = .sv_ink,
-                       ggplot2::aes(label = ggplot2::after_stat(stratum))) +
+                       ggplot2::aes(label = ifelse(
+                         ggplot2::after_stat(count) >= lab_min,
+                         as.character(ggplot2::after_stat(stratum)), ""))) +
     ggplot2::scale_x_discrete(labels = rlabs, expand = c(0.08, 0.08)) +
     ggplot2::scale_fill_manual(
       values = c(positive = pal$pos, negative = pal$neg),
