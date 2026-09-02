@@ -10,23 +10,33 @@
          call. = FALSE)
 }
 
-## base frame: ggplot2's grey theme, with only the text colours and title
-## position nudged to the package neutrals. `y_axis` is accepted for
-## backward compatibility and has no effect (theme_gray already draws both
-## axes and the grid).
+## clean frame: white ground, no grid or border, light-grey axis lines only.
 .sv_theme <- function(base_size = 12, y_axis = FALSE) {
-  ggplot2::theme_gray(base_size = base_size) +
+  th <- ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
-      axis.title          = ggplot2::element_text(colour = .sv_axis, size = base_size),
-      axis.text           = ggplot2::element_text(colour = .sv_axis, size = base_size - 1),
-      plot.title          = ggplot2::element_text(colour = .sv_ink, size = base_size + 1,
-                                                  margin = ggplot2::margin(b = 6)),
+      panel.grid        = ggplot2::element_blank(),
+      panel.border      = ggplot2::element_blank(),
+      axis.line.x       = ggplot2::element_line(colour = .sv_line, linewidth = 0.5),
+      axis.ticks.x      = ggplot2::element_line(colour = .sv_line, linewidth = 0.5),
+      axis.ticks.length = ggplot2::unit(3, "pt"),
+      axis.ticks.y      = ggplot2::element_blank(),
+      axis.title        = ggplot2::element_text(colour = .sv_axis, size = base_size),
+      axis.text         = ggplot2::element_text(colour = .sv_axis, size = base_size - 1),
+      plot.title        = ggplot2::element_text(colour = .sv_ink, size = base_size + 1,
+                                                face = "plain",
+                                                margin = ggplot2::margin(b = 6)),
       plot.title.position = "plot",
-      plot.subtitle       = ggplot2::element_text(colour = .sv_axis, size = base_size - 1),
-      legend.title        = ggplot2::element_text(colour = .sv_axis, size = base_size - 1),
-      legend.text         = ggplot2::element_text(colour = .sv_axis, size = base_size - 1),
-      plot.margin         = ggplot2::margin(10, 14, 8, 10)
+      plot.subtitle     = ggplot2::element_text(colour = .sv_axis, size = base_size - 1),
+      legend.title      = ggplot2::element_text(colour = .sv_axis, size = base_size - 1),
+      legend.text       = ggplot2::element_text(colour = .sv_axis, size = base_size - 1),
+      legend.key        = ggplot2::element_blank(),
+      plot.margin       = ggplot2::margin(10, 14, 8, 10)
     )
+  if (y_axis)
+    th <- th + ggplot2::theme(
+      axis.line.y  = ggplot2::element_line(colour = .sv_line, linewidth = 0.5),
+      axis.ticks.y = ggplot2::element_line(colour = .sv_line, linewidth = 0.5))
+  th
 }
 
 ## slim, unframed vertical colour bar
@@ -256,7 +266,9 @@ sv_waterfall <- function(x, row = 1L, output = NULL, max_features = 10L,
                                             `in` = "white"), guide = "none") +
     ggplot2::coord_cartesian(clip = "off") +
     ggplot2::labs(x = NULL, y = NULL, title = title) +
-    .sv_theme()
+    .sv_theme() +
+    ggplot2::theme(axis.line.x = ggplot2::element_line(colour = .sv_line,
+                                                       linewidth = 0.5))
 }
 
 #' SHAP dependence plot
