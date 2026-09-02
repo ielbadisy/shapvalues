@@ -1,0 +1,10 @@
+^shapvalues_.*\.tar\.gz$
+^\.git$
+^\.github$
+^\.claude$
+^cran-comments\.md$
+^shapvalues\.Rcheck$
+^README\.Rmd$
+^LICENSE\.md$
+^\.Rproj\.user$
+^inst/benchmarks/.*-run\.log$
