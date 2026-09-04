@@ -13,11 +13,11 @@ theme_shapvalues(base_size = 12)
 A `ggplot2` theme object.
 }
 \description{
-The clean frame every `sv_*` plot uses by default: a white panel with no
-grid or border and light-grey axis lines. Exported so it can be re-applied
-after other tweaks, or used on your own plots. Every `sv_*` function returns
-a plain `ggplot` object, so you may also drop this theme and add any
-`ggplot2::theme_*()` afterwards with `+`.
+The clean frame every `plot.shapvalues()` view uses by default: a white
+panel with no grid or border and light-grey axis lines. Exported so it can
+be re-applied after other tweaks, or used on your own plots. `plot()`
+returns a plain `ggplot` object, so you may also drop this theme and add
+any `ggplot2::theme_*()` afterwards with `+`.
 }
 \examples{
 if (requireNamespace("ggplot2", quietly = TRUE)) {
@@ -26,6 +26,6 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 
   fit <- lm(mpg ~ ., data = mtcars)
   sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
-  sv_beeswarm(sv) + theme_bw()          # swap in any ggplot2 theme
+  plot(sv) + theme_bw()   # swap in any ggplot2 theme
 }
 }

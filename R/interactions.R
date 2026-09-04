@@ -92,8 +92,8 @@
 #' sv <- shapvalues(fit, mtcars[, c("wt", "hp", "disp", "drat")],
 #'                  mtcars[, c("wt", "hp", "disp", "drat")], nsim = 20,
 #'                  interactions = TRUE, nthreads = 2)
-#' if (requireNamespace("ggplot2", quietly = TRUE)) sv_interaction(sv, "wt")
-#' @export
+#' if (requireNamespace("ggplot2", quietly = TRUE)) plot(sv, type = "interaction", feature = "wt")
+#' @noRd
 sv_interaction <- function(x, feature, interact = NULL, title = NULL,
                            style = NULL) {
   .sv_need_ggplot()

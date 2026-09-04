@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{plot.shapvalues}
 \alias{plot.shapvalues}
-\title{Plot method for shapvalues objects}
+\title{Plot a shapvalues object}
 \usage{
 \method{plot}{shapvalues}(
   x,
@@ -18,11 +18,51 @@
 `"dependence"`, `"interaction"`, `"surv"`, `"compass"`, `"fingerprint"`,
 `"pathway"`.}
 
-\item{...}{Passed to the chosen `sv_*` function.}
+\item{...}{Arguments for the chosen `type`; see Details.}
 }
 \value{
-The `shapvalues` object, invisibly.
+The `ggplot` object, invisibly (printed as a side effect). You may
+  assign it and add further `ggplot2` layers with `+`.
 }
 \description{
-Plot method for shapvalues objects
+Single entry point for every `shapvalues` visualisation; `type` picks the
+view, and `...` is forwarded to it. All views take `output` (which model
+output to show, when there is more than one) and `style` (colour style;
+`NULL` uses the active style, see [sv_style()]); most take `title`.
+}
+\details{
+\describe{
+  \item{`"beeswarm"`}{(default) one row per feature, points positioned by
+    SHAP value and coloured by feature value. Args: `max_features`.}
+  \item{`"importance"`}{bar plot of mean `|SHAP|` per feature. Args:
+    `max_features`.}
+  \item{`"waterfall"`}{builds one observation's prediction from the
+    baseline, one feature at a time. Args: `row`, `max_features`.}
+  \item{`"dependence"`}{SHAP value of one feature against its observed
+    value. Args: `feature` (required), `colour_by`, `smooth`.}
+  \item{`"interaction"`}{pairwise SHAP interaction scatter; needs
+    `interactions = TRUE` in [shapvalues()]. Args: `feature` (required),
+    `interact`.}
+  \item{`"surv"`}{SurvSHAP(t): one line per feature over evaluation times,
+    for one observation. Needs `task = "survival"`. Args: `row`,
+    `max_features`.}
+  \item{`"compass"`}{places each observation by the direction its
+    attribution mass points; distance from centre is concentration (see
+    [sv_concentration()]). Args: `groups`, `order`, `colour_by`.}
+  \item{`"fingerprint"`}{radial `|SHAP|` signature, one facet per
+    observation or per k-means cluster. Args: `rows`, `k`, `max_features`.}
+  \item{`"pathway"`}{alluvial diagram of the top-ranked contributors per
+    observation; needs the \pkg{ggalluvial} package. Args: `rank`,
+    `min_n`, `signed`.}
+}
+}
+\examples{
+fit <- lm(mpg ~ ., data = mtcars)
+sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  plot(sv)
+  plot(sv, type = "importance")
+  plot(sv, type = "dependence", feature = "wt", colour_by = "hp")
+  plot(sv, type = "waterfall", row = 1) + ggplot2::theme_bw()
+}
 }

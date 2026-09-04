@@ -104,8 +104,8 @@ sv_concentration <- function(x, groups = NULL, output = NULL, order = "cluster")
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
 #' sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
-#' if (requireNamespace("ggplot2", quietly = TRUE)) sv_compass(sv)
-#' @export
+#' if (requireNamespace("ggplot2", quietly = TRUE)) plot(sv, type = "compass")
+#' @noRd
 sv_compass <- function(x, groups = NULL, output = NULL, order = "cluster",
                        colour_by = c("prediction", "concentration", "none"),
                        title = NULL, style = NULL) {
@@ -170,8 +170,8 @@ sv_compass <- function(x, groups = NULL, output = NULL, order = "cluster",
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
 #' sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
-#' if (requireNamespace("ggplot2", quietly = TRUE)) sv_fingerprint(sv, k = 3)
-#' @export
+#' if (requireNamespace("ggplot2", quietly = TRUE)) plot(sv, type = "fingerprint", k = 3)
+#' @noRd
 sv_fingerprint <- function(x, rows = NULL, k = NULL, output = NULL,
                            max_features = 16L, title = NULL, style = NULL) {
   .sv_need_ggplot()
@@ -246,8 +246,8 @@ sv_fingerprint <- function(x, rows = NULL, k = NULL, output = NULL,
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
 #' sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
-#' if (requireNamespace("ggalluvial", quietly = TRUE)) sv_pathway(sv)
-#' @export
+#' if (requireNamespace("ggalluvial", quietly = TRUE)) plot(sv, type = "pathway")
+#' @noRd
 sv_pathway <- function(x, rank = 3L, min_n = NULL, output = NULL,
                        signed = FALSE, title = NULL, style = NULL) {
   .sv_need_ggplot()

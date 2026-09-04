@@ -12,11 +12,11 @@
 
 #' The shapvalues plot theme
 #'
-#' The clean frame every `sv_*` plot uses by default: a white panel with no
-#' grid or border and light-grey axis lines. Exported so it can be re-applied
-#' after other tweaks, or used on your own plots. Every `sv_*` function returns
-#' a plain `ggplot` object, so you may also drop this theme and add any
-#' `ggplot2::theme_*()` afterwards with `+`.
+#' The clean frame every `plot.shapvalues()` view uses by default: a white
+#' panel with no grid or border and light-grey axis lines. Exported so it can
+#' be re-applied after other tweaks, or used on your own plots. `plot()`
+#' returns a plain `ggplot` object, so you may also drop this theme and add
+#' any `ggplot2::theme_*()` afterwards with `+`.
 #'
 #' @param base_size Base font size, in points.
 #' @return A `ggplot2` theme object.
@@ -27,7 +27,7 @@
 #'
 #'   fit <- lm(mpg ~ ., data = mtcars)
 #'   sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
-#'   sv_beeswarm(sv) + theme_bw()          # swap in any ggplot2 theme
+#'   plot(sv) + theme_bw()   # swap in any ggplot2 theme
 #' }
 #' @export
 theme_shapvalues <- function(base_size = 12) {
@@ -155,8 +155,8 @@ theme_shapvalues <- function(base_size = 12) {
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
 #' sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
-#' if (requireNamespace("ggplot2", quietly = TRUE)) sv_beeswarm(sv)
-#' @export
+#' if (requireNamespace("ggplot2", quietly = TRUE)) plot(sv, type = "beeswarm")
+#' @noRd
 sv_beeswarm <- function(x, output = NULL, max_features = 15L, title = NULL,
                         style = NULL) {
   .sv_need_ggplot()
@@ -190,7 +190,7 @@ sv_beeswarm <- function(x, output = NULL, max_features = 15L, title = NULL,
 #'
 #' @inheritParams sv_beeswarm
 #' @return A `ggplot` object.
-#' @export
+#' @noRd
 sv_importance <- function(x, output = NULL, max_features = 15L, title = NULL,
                           style = NULL) {
   .sv_need_ggplot()
@@ -220,7 +220,7 @@ sv_importance <- function(x, output = NULL, max_features = 15L, title = NULL,
 #' @param row Row index into the explained data.
 #' @param max_features Features shown individually; the rest are pooled.
 #' @return A `ggplot` object.
-#' @export
+#' @noRd
 sv_waterfall <- function(x, row = 1L, output = NULL, max_features = 10L,
                          title = NULL, style = NULL) {
   .sv_need_ggplot()
@@ -305,7 +305,7 @@ sv_waterfall <- function(x, row = 1L, output = NULL, max_features = 10L,
 #' @param colour_by Optional second feature used to colour the points.
 #' @param smooth If `TRUE`, add a loess trend line.
 #' @return A `ggplot` object.
-#' @export
+#' @noRd
 sv_dependence <- function(x, feature, colour_by = NULL, output = NULL,
                           smooth = FALSE, title = NULL, style = NULL) {
   .sv_need_ggplot()
@@ -350,7 +350,7 @@ sv_dependence <- function(x, feature, colour_by = NULL, output = NULL,
 #' @param title Optional plot title.
 #' @param style Colour style; `NULL` uses the active style.
 #' @return A `ggplot` object.
-#' @export
+#' @noRd
 sv_surv <- function(x, row = 1L, max_features = 8L, title = NULL, style = NULL) {
   .sv_need_ggplot()
   stopifnot(inherits(x, "shapvalues"))
@@ -375,14 +375,54 @@ sv_surv <- function(x, row = 1L, max_features = 8L, title = NULL, style = NULL) 
     .sv_theme(y_axis = TRUE)
 }
 
-#' Plot method for shapvalues objects
+#' Plot a shapvalues object
+#'
+#' Single entry point for every `shapvalues` visualisation; `type` picks the
+#' view, and `...` is forwarded to it. All views take `output` (which model
+#' output to show, when there is more than one) and `style` (colour style;
+#' `NULL` uses the active style, see [sv_style()]); most take `title`.
+#'
+#' \describe{
+#'   \item{`"beeswarm"`}{(default) one row per feature, points positioned by
+#'     SHAP value and coloured by feature value. Args: `max_features`.}
+#'   \item{`"importance"`}{bar plot of mean `|SHAP|` per feature. Args:
+#'     `max_features`.}
+#'   \item{`"waterfall"`}{builds one observation's prediction from the
+#'     baseline, one feature at a time. Args: `row`, `max_features`.}
+#'   \item{`"dependence"`}{SHAP value of one feature against its observed
+#'     value. Args: `feature` (required), `colour_by`, `smooth`.}
+#'   \item{`"interaction"`}{pairwise SHAP interaction scatter; needs
+#'     `interactions = TRUE` in [shapvalues()]. Args: `feature` (required),
+#'     `interact`.}
+#'   \item{`"surv"`}{SurvSHAP(t): one line per feature over evaluation times,
+#'     for one observation. Needs `task = "survival"`. Args: `row`,
+#'     `max_features`.}
+#'   \item{`"compass"`}{places each observation by the direction its
+#'     attribution mass points; distance from centre is concentration (see
+#'     [sv_concentration()]). Args: `groups`, `order`, `colour_by`.}
+#'   \item{`"fingerprint"`}{radial `|SHAP|` signature, one facet per
+#'     observation or per k-means cluster. Args: `rows`, `k`, `max_features`.}
+#'   \item{`"pathway"`}{alluvial diagram of the top-ranked contributors per
+#'     observation; needs the \pkg{ggalluvial} package. Args: `rank`,
+#'     `min_n`, `signed`.}
+#' }
 #'
 #' @param x A `shapvalues` object.
 #' @param type One of `"beeswarm"`, `"importance"`, `"waterfall"`,
 #'   `"dependence"`, `"interaction"`, `"surv"`, `"compass"`, `"fingerprint"`,
 #'   `"pathway"`.
-#' @param ... Passed to the chosen `sv_*` function.
-#' @return The `shapvalues` object, invisibly.
+#' @param ... Arguments for the chosen `type`; see Details.
+#' @return The `ggplot` object, invisibly (printed as a side effect). You may
+#'   assign it and add further `ggplot2` layers with `+`.
+#' @examples
+#' fit <- lm(mpg ~ ., data = mtcars)
+#' sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
+#' if (requireNamespace("ggplot2", quietly = TRUE)) {
+#'   plot(sv)
+#'   plot(sv, type = "importance")
+#'   plot(sv, type = "dependence", feature = "wt", colour_by = "hp")
+#'   plot(sv, type = "waterfall", row = 1) + ggplot2::theme_bw()
+#' }
 #' @export
 #' @importFrom graphics plot
 plot.shapvalues <- function(x, type = c("beeswarm", "importance", "waterfall",
@@ -395,6 +435,7 @@ plot.shapvalues <- function(x, type = c("beeswarm", "importance", "waterfall",
                interaction = sv_interaction, surv = sv_surv,
                compass = sv_compass, fingerprint = sv_fingerprint,
                pathway = sv_pathway)
-  print(fn(x, ...))
-  invisible(x)
+  p <- fn(x, ...)
+  print(p)
+  invisible(p)
 }
