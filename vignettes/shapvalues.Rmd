@@ -1,0 +1,359 @@
+---
+title: "shapvalues: fast model-agnostic Shapley additive explanations"
+author: "Imad El Badisy"
+output:
+  rmarkdown::pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{shapvalues: fast model-agnostic Shapley additive explanations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE,
+  fig.align = "center", fig.width = 6, fig.height = 3.6,
+  dev = "png", dpi = 100, out.width = "90%"
+)
+options(width = 82)
+set.seed(1)
+
+have_gallery <- requireNamespace("ggplot2", quietly = TRUE) &&
+  requireNamespace("ranger", quietly = TRUE) &&
+  requireNamespace("MASS", quietly = TRUE)
+have_surv <- requireNamespace("ggplot2", quietly = TRUE) &&
+  requireNamespace("survival", quietly = TRUE)
+have_alluvial <- have_gallery && requireNamespace("ggalluvial", quietly = TRUE)
+```
+
+# Overview
+
+`shapvalues` computes Shapley additive explanations (SHAP) for the predictions
+of any supervised model through a single prediction callback. It covers
+regression, binary and multiclass classification, and right-censored survival
+analysis with time-dependent attributions.
+
+The estimator is the sampling (permutation) estimator of
+Strumbelj and Kononenko (2014). Two implementation choices make it fast:
+
+1. every coalition prediction needed for a batch of observations is assembled
+   into **one data frame and scored in a single call** to the prediction
+   callback, so the per-call overhead of the model is paid once instead of
+   thousands of times;
+2. the marginal-contribution reduction over those predictions runs in
+   **parallel C++** via `RcppParallel`.
+
+The same background rows are reused across all explained observations, which
+makes the Monte Carlo estimate satisfy *local accuracy* exactly (up to
+floating point) and acts as a common-random-numbers variance reduction.
+
+This vignette states the estimand and the estimator for every method the
+package implements, then shows the API on worked examples. It is a more
+detailed companion to the package `README`.
+
+# The Shapley value
+
+Let $f$ be the quantity we explain: a regression function, a class
+probability, or a survival probability at a fixed time. For an instance
+$x$ with $p$ features indexed by $F = \{1, \dots, p\}$, write $v(S)$ for the
+model output when only the features in $S \subseteq F$ are "present" and the
+rest are integrated out over a background distribution:
+$$
+v(S) \;=\; \mathbb{E}_{z}\!\left[\, f\big(x_S,\; z_{F \setminus S}\big) \right],
+$$
+where $x_S$ are the values of $x$ on $S$ and $z_{F\setminus S}$ is drawn from
+the background data. The Shapley value of feature $i$ is the average marginal
+contribution of $i$ over all orderings of the features:
+$$
+\phi_i \;=\; \sum_{S \subseteq F \setminus \{i\}}
+\frac{|S|!\,(p - |S| - 1)!}{p!}
+\Big[\, v\big(S \cup \{i\}\big) - v(S) \,\Big].
+$$
+It is the unique attribution that is efficient, symmetric, null-player and
+linear. *Efficiency* is the local-accuracy property used throughout the
+package:
+$$
+\sum_{i=1}^{p} \phi_i \;=\; v(F) - v(\varnothing)
+\;=\; f(x) - \mathbb{E}_z[f(z)].
+$$
+The right-most term $\mathbb{E}_z[f(z)]$ is the **baseline** returned in
+`sv$baseline`.
+
+# The permutation (sampling) estimator
+
+The exact sum over subsets costs $2^p$ evaluations. The sampling estimator
+rewrites $\phi_i$ as an expectation over a uniformly random permutation
+$\pi$ of the features:
+$$
+\phi_i \;=\; \mathbb{E}_{\pi}\!\left[\,
+v\big(P_i^{\pi} \cup \{i\}\big) - v\big(P_i^{\pi}\big) \right],
+\qquad
+P_i^{\pi} = \{\, j : \pi(j) < \pi(i) \,\},
+$$
+where $P_i^{\pi}$ is the set of features that precede $i$ in $\pi$. Drawing
+`nsim` permutations $\pi^{(1)}, \dots, \pi^{(M)}$ and, for each, one background
+row $z^{(m)}$, the estimator is
+$$
+\hat{\phi}_i \;=\; \frac{1}{M} \sum_{m=1}^{M}
+\Big[\, \hat v\big(P_i^{\pi^{(m)}} \cup \{i\};\, z^{(m)}\big)
+      - \hat v\big(P_i^{\pi^{(m)}};\, z^{(m)}\big) \Big],
+$$
+with $\hat v(S; z) = f(x_S, z_{F \setminus S})$ a single-draw estimate of the
+conditioning expectation. Two details in the implementation:
+
+* **Telescoping.** Along one permutation, the $p$ successive coalitions
+  $\varnothing \subset \{\pi^{-1}(1)\} \subset \dots \subset F$ give all $p$
+  feature contributions from $p + 1$ predictions, and consecutive
+  differences telescope so that $\sum_i \hat\phi_i^{(m)} = f(x) - f(z^{(m)})$
+  for every single permutation. Averaging preserves this, so
+  `rowSums(sv$phi) + sv$baseline` equals `sv$prediction` exactly.
+* **Antithetic permutations** (`antithetic = TRUE`). Permutations are drawn
+  in reversed pairs $(\pi, \pi^{\text{rev}})$. The two orderings are
+  negatively correlated, which lowers the variance of $\hat\phi_i$ at no
+  extra model calls; `nsim` is rounded up to an even number.
+
+For an additive model $f(x) = \beta_0 + \sum_j g_j(x_j)$ the estimator is
+*exact* for any single permutation, so with `nsim >= bg_size` the result
+matches the closed form to machine precision.
+
+## Cost and batching
+
+One explained observation costs $M (p + 1)$ predictions; a data set of $n$
+rows costs $n M (p + 1)$. Rather than issue them one at a time, `shapvalues`
+builds the entire $n M (p + 1) \times p$ design of coalition rows and calls
+`pred_fun` once. The C++ reduction then forms the $M$ telescoping differences
+per observation and averages them, parallelised over observations (and over
+outputs for multi-output models) with `nthreads` threads.
+
+# Getting started
+
+```{r quickstart}
+library(shapvalues)
+
+fit <- lm(mpg ~ ., data = mtcars)
+sv  <- shapvalues(fit, X = mtcars[, -1], bg = mtcars[, -1], nsim = 100)
+sv
+```
+
+`shapvalues()` needs three things: a model, the rows to explain `X`, and a
+background sample `bg` used to integrate out absent features. When the model
+class is recognised (`lm`, `glm`, `ranger`, `xgb.Booster`) the prediction
+callback is chosen automatically; otherwise pass `pred_fun`, a function with
+signature `function(object, newdata)` (plus `times` for survival).
+
+Local accuracy holds for the Monte Carlo estimate:
+
+```{r localacc}
+max(abs(rowSums(sv$phi) + sv$baseline - sv$prediction[, 1]))
+```
+
+The return value stores the attribution array `phi` (`n x p`, or
+`n x p x n_output`), the `baseline` $\mathbb{E}_z[f(z)]$, the model
+`prediction`, and the explained `feature_values`.
+
+## Tables
+
+```{r tables}
+head(sv_table(sv))
+sv_importance_table(sv)
+```
+
+# Plots
+
+All plots are produced through the `plot()` method with a `type` argument and
+return a plain `ggplot` object, so they can be themed with any
+`ggplot2::theme_*()` via `+`. The gallery below uses a random forest on the
+Boston housing data.
+
+```{r boston, eval = have_gallery}
+data(Boston, package = "MASS")
+rf  <- ranger::ranger(medv ~ ., data = Boston, num.trees = 400)
+pf  <- function(object, newdata) predict(object, newdata)$predictions
+expl <- Boston[sample(nrow(Boston), 150), ]        # rows to explain
+svb  <- shapvalues(rf, X = expl[, -14], bg = Boston[, -14],
+                   pred_fun = pf, nsim = 60, bg_size = 200)
+```
+
+**Beeswarm** — one point per observation and feature, positioned by its SHAP
+value and coloured by the (scaled) feature value.
+
+```{r beeswarm, eval = have_gallery}
+plot(svb, type = "beeswarm")
+```
+
+**Importance** — features ranked by mean absolute SHAP,
+$\frac{1}{n}\sum_{k=1}^{n} |\phi_{ki}|$.
+
+```{r importance, eval = have_gallery, fig.height = 3.4}
+plot(svb, type = "importance")
+```
+
+**Waterfall** — the additive decomposition for one row: starting at the
+baseline $\mathbb{E}_z[f(z)]$, each bar adds one $\phi_{ki}$ and the total
+lands on $f(x_k)$.
+
+```{r waterfall, eval = have_gallery}
+plot(svb, type = "waterfall", row = 1)
+```
+
+**Dependence** — $\phi_{ki}$ against the value of feature $i$, optionally
+coloured by a second feature to expose interactions.
+
+```{r dependence, eval = have_gallery}
+plot(svb, type = "dependence", feature = "rm", colour_by = "lstat")
+```
+
+# Pairwise interaction values
+
+With `interactions = TRUE`, `shapvalues()` also estimates the pairwise SHAP
+interaction matrix. For a pair $(i, j)$ the interaction is the halved,
+symmetrised Grabisch-Roubens Shapley interaction index (Lundberg et al.,
+2020):
+$$
+\Phi_{ij} \;=\; \tfrac{1}{2}\,
+\mathbb{E}_{s,\,S}\!\left[\,
+v\big(S \cup \{i, j\}\big) - v\big(S \cup \{i\}\big)
+- v\big(S \cup \{j\}\big) + v(S) \right],
+$$
+where $s$ is uniform on $\{0, \dots, p - 2\}$ and, given $s$, the set $S$ is a
+uniform size-$s$ subset of $F \setminus \{i, j\}$. The four coalitions per
+sample are scored together in the shared batched call. The diagonal is set to
+the residual main effect,
+$$
+\Phi_{ii} \;=\; \phi_i - \sum_{j \neq i} \Phi_{ij},
+$$
+so every row of the $p \times p$ matrix sums to the SHAP value $\phi_i$ and
+the whole matrix sums to $f(x) - \mathbb{E}_z[f(z)]$. Interaction estimation
+is single-output only and costs $O(p^2)$ more predictions.
+
+```{r interaction}
+svi <- shapvalues(
+  lm(mpg ~ wt * hp + disp + drat + qsec, data = mtcars),
+  mtcars[, c("wt", "hp", "disp", "drat", "qsec")],
+  mtcars[, c("wt", "hp", "disp", "drat", "qsec")],
+  nsim = 120, interactions = TRUE
+)
+dim(svi$interactions)
+round(svi$interactions[1, , ], 3)
+```
+
+```{r interaction-plot, eval = have_gallery}
+plot(svi, type = "interaction", feature = "wt", interact = "hp")
+```
+
+# Survival: time-dependent attributions
+
+For right-censored survival models the explained quantity is the predicted
+survival probability at a set of times, $f_t(x) = \hat S(t \mid x)$. The
+callback returns an $n \times |\text{times}|$ matrix, and `shapvalues()`
+runs the permutation estimator independently for each column, giving an
+attribution surface
+$$
+\phi_i(t), \qquad t \in \texttt{times},
+$$
+with $\sum_i \phi_i(t) = \hat S(t \mid x) - \mathbb{E}_z[\hat S(t \mid z)]$ at
+every $t$. This is the SurvSHAP(t) explanation of Krzyzinski et al. (2023).
+
+```{r survival, eval = have_surv}
+library(survival)
+cox <- coxph(Surv(time, status) ~ age + karno + celltype,
+             data = veteran, x = TRUE)
+pf_surv <- function(object, newdata, times) {
+  s <- summary(survfit(object, newdata = newdata),
+               times = times, extend = TRUE)$surv
+  t(matrix(s, nrow = length(times)))
+}
+svs <- shapvalues(cox, veteran[, c("age", "karno", "celltype")],
+                  veteran[, c("age", "karno", "celltype")],
+                  pred_fun = pf_surv, times = c(30, 90, 180, 270, 365),
+                  task = "survival", nsim = 60)
+plot(svs, type = "surv", row = 1)
+```
+
+# Multivariate attribution views
+
+These summarise the whole attribution vector of an observation rather than
+marginalising one feature at a time.
+
+## Compass and explanation concentration
+
+Place unit vectors $u_1, \dots, u_p$ evenly around a circle, one per feature
+(or feature group). The attribution barycentre of observation $k$ is
+$$
+C_k \;=\; \frac{\sum_{i} |\phi_{ki}|\, u_i}{\sum_{i} |\phi_{ki}|},
+\qquad
+EC_k \;=\; \lVert C_k \rVert \in [0, 1].
+$$
+$EC_k$ near $1$ means the prediction is driven by one coherent direction in
+feature space; near $0$ means many competing contributions. `sv_concentration()`
+returns the coordinates, the angle, the dominant feature and $EC$;
+`plot(type = "compass")` draws each observation as a point at $C_k$.
+
+```{r compass, eval = have_gallery, fig.height = 5}
+head(sv_concentration(svb))
+plot(svb, type = "compass")
+```
+
+## Fingerprint
+
+A radial signature of $|\phi_{ki}|$ across features, drawn per observation or
+per k-means cluster of the SHAP profiles $\{\phi_{k\cdot}\}$. It shows *which
+shape* of explanation recurs in the data.
+
+```{r fingerprint, eval = have_gallery, fig.height = 3.2}
+plot(svb, type = "fingerprint", k = 4)
+```
+
+## Pathway
+
+An alluvial of the top-`rank` contributors per observation: each node is a
+feature, flow width is the number of observations sharing that ranked
+contributor, and flow colour is the sign of the dominant contribution. Rare
+pathways (fewer than `min_n` observations) are dropped. Needs `ggalluvial`.
+
+```{r pathway, eval = have_alluvial, fig.height = 4}
+plot(svb, type = "pathway", rank = 3)
+```
+
+# One colour system
+
+Every plot draws its colours from `sv_style()`: the package's own diverging
+pair `"shapvalues"`, or a `viridisLite` map (`"viridis"`, `"magma"`,
+`"inferno"`, `"plasma"`, `"cividis"`). Structural elements (axes, separators)
+stay constant across styles. Set it globally with `sv_style()` or per call
+with the `style` argument; `sv_palette()` returns the active colours.
+
+```{r styles, eval = have_gallery, fig.width = 6.5, fig.height = 3, fig.show = "hold", out.width = "48%"}
+plot(svb, type = "beeswarm", max_features = 6, title = "shapvalues")
+plot(svb, type = "beeswarm", max_features = 6, title = "plasma", style = "plasma")
+```
+
+# Notes on accuracy and cost
+
+* **More permutations.** The standard error of $\hat\phi_i$ is
+  $O(M^{-1/2})$. For tree ensembles the estimate keeps moving until `nsim` is
+  in the low hundreds; for additive models `nsim >= bg_size` is already exact.
+* **Background size.** `bg_size` controls how well $v(S)$ approximates the
+  conditioning expectation. Larger backgrounds reduce bias at linear cost in
+  predictions.
+* **Threads.** `nthreads` parallelises the reduction. Its effect is modest
+  for single-output models (the batched predict and the R-side row assembly
+  dominate) and largest for many-output classification.
+
+# References
+
+Strumbelj, E. and Kononenko, I. (2014). Explaining prediction models and
+individual predictions with feature contributions. *Knowledge and Information
+Systems* 41(3), 647-665. <https://doi.org/10.1007/s10115-013-0679-x>
+
+Lundberg, S. M., Erion, G., Chen, H., DeGrave, A., Prutkin, J. M., Nair, B.,
+Katz, R., Himmelfarb, J., Bansal, N. and Lee, S.-I. (2020). From local
+explanations to global understanding with explainable AI for trees. *Nature
+Machine Intelligence* 2, 56-67. <https://doi.org/10.1038/s42256-019-0138-9>
+
+Krzyzinski, M., Spytek, M., Baniecki, H. and Biecek, P. (2023). SurvSHAP(t):
+time-dependent explanations of machine learning survival models.
+*Knowledge-Based Systems* 262, 110234. <https://doi.org/10.1016/j.knosys.2022.110234>
