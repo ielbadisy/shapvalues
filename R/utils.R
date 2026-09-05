@@ -6,5 +6,5 @@ utils::globalVariables(c(
   "feature", "shap", "mean_abs", "start", "end", "sign", "time",
   "y", "yend", "value01", "bx", "tx", "ty", "grp", "lx", "lcol", "lhj",
   "cx", "cy", "ux", "uy", "total_abs", "col", "axis", "mag", "direction",
-  "panel", "node", "path_id", "nobs", "dom", "rank", "stratum"
+  "panel", "node", "path_id", "nobs", "dom", "rank", "stratum", "count"
 ))
