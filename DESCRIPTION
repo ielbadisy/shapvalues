@@ -23,6 +23,7 @@ BugReports: https://github.com/ielbadisy/shapvalues/issues
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
 Imports:
+    basetable (>= 1.4.0),
     grDevices,
     Rcpp,
     RcppParallel,

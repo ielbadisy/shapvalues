@@ -166,7 +166,7 @@ sv_beeswarm <- function(x, output = NULL, max_features = 15L, title = NULL,
   phi <- .sv_slice(x, o)
   feats <- rev(.sv_order_features(phi, max_features))
   fv <- x$feature_values
-  df <- do.call(rbind, lapply(seq_along(feats), function(i) {
+  df <- basetable::rbindfill(lapply(seq_along(feats), function(i) {
     f <- feats[i]; s <- phi[, f]
     data.frame(feature = f, row = i, shap = s, y = i + .sv_swarm(s),
                value01 = .sv_scale01(fv[[f]]), stringsAsFactors = FALSE)
@@ -256,7 +256,7 @@ sv_waterfall <- function(x, row = 1L, output = NULL, max_features = 10L,
   if (span == 0) span <- 1
   h <- 0.34; tipw <- 0.022 * span
   df$bx <- with(df, ifelse(abs(shap) > tipw, end - sign(shap) * tipw, start))
-  tri <- do.call(rbind, lapply(seq_len(ny), function(i) data.frame(
+  tri <- basetable::rbindfill(lapply(seq_len(ny), function(i) data.frame(
     grp = i, sign = df$sign[i],
     tx = c(df$bx[i], df$end[i], df$bx[i]),
     ty = c(df$y[i] - h, df$y[i], df$y[i] + h))))
@@ -362,7 +362,7 @@ sv_surv <- function(x, row = 1L, max_features = 8L, title = NULL, style = NULL) 
   mat <- arr[row, , , drop = FALSE][1, , ]
   score <- rowMeans(abs(mat))
   feats <- names(sort(score, decreasing = TRUE))[seq_len(min(max_features, length(score)))]
-  df <- do.call(rbind, lapply(feats, function(f)
+  df <- basetable::rbindfill(lapply(feats, function(f)
     data.frame(time = times, shap = mat[f, ], feature = f, stringsAsFactors = FALSE)))
   df$feature <- factor(df$feature, levels = feats)
   ggplot2::ggplot(df, ggplot2::aes(x = time, y = shap, colour = feature)) +

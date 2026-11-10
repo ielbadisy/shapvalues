@@ -186,7 +186,7 @@ sv_fingerprint <- function(x, rows = NULL, k = NULL, output = NULL,
     if (k < 2L || k >= nrow(phi)) stop("`k` must be between 2 and n - 1.",
                                        call. = FALSE)
     cl <- stats::kmeans(scale(phi), centers = k, nstart = 20L)$cluster
-    df <- do.call(rbind, lapply(sort(unique(cl)), function(g) {
+    df <- basetable::rbindfill(lapply(sort(unique(cl)), function(g) {
       sub <- phi[cl == g, , drop = FALSE]
       data.frame(panel = sprintf("cluster %d (n = %d)", g, nrow(sub)),
                  feature = feats, mag = colMeans(abs(sub)),
@@ -196,7 +196,7 @@ sv_fingerprint <- function(x, rows = NULL, k = NULL, output = NULL,
   } else {
     if (is.null(rows))
       rows <- utils::head(order(rowSums(abs(phi)), decreasing = TRUE), 3L)
-    df <- do.call(rbind, lapply(rows, function(i) {
+    df <- basetable::rbindfill(lapply(rows, function(i) {
       data.frame(panel = sprintf("obs %s",
                    (rownames(phi) %||% as.character(seq_len(nrow(phi))))[i]),
                  feature = feats, mag = abs(phi[i, ]),
@@ -270,15 +270,15 @@ sv_pathway <- function(x, rank = 3L, min_n = NULL, output = NULL,
   }))
   paths <- as.data.frame(top, stringsAsFactors = FALSE)
   names(paths) <- c(paste0("r", seq_len(rank)), "dom")
-  agg <- stats::aggregate(list(nobs = seq_len(n)),
-                          by = as.list(paths), FUN = length)
+  agg <- basetable::count(paths, by = names(paths), name = "nobs")
+  agg <- basetable::orderrows(agg, rev(names(paths)))
   keep <- agg$nobs >= min_n
   dropped <- sum(agg$nobs[!keep])
   agg <- agg[keep, , drop = FALSE]
   if (!nrow(agg)) stop("no pathway reaches min_n = ", min_n,
                        "; lower min_n or rank.", call. = FALSE)
   agg$path_id <- seq_len(nrow(agg))
-  long <- do.call(rbind, lapply(seq_len(rank), function(r)
+  long <- basetable::rbindfill(lapply(seq_len(rank), function(r)
     data.frame(path_id = agg$path_id, nobs = agg$nobs, dom = agg$dom,
                rank = r, node = agg[[paste0("r", r)]],
                stringsAsFactors = FALSE)))

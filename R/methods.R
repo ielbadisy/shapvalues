@@ -56,13 +56,13 @@ sv_table <- function(x, ...) {
                       stringsAsFactors = FALSE)
   grid$phi <- as.vector(arr)
   fv <- x$feature_values
-  fv_long <- do.call(rbind, lapply(x$features, function(f) {
+  fv_long <- basetable::rbindfill(lapply(x$features, function(f) {
     data.frame(observation = obs, feature = f,
                feature_value = .sv_num(fv[[f]]),
                stringsAsFactors = FALSE)
   }))
-  out <- merge(grid, fv_long, by = c("observation", "feature"), sort = FALSE)
-  out <- out[, c("observation", "feature", "phi", "feature_value", "output")]
+  out <- basetable::merge(grid, fv_long, by = c("observation", "feature"))
+  out <- as.data.frame(out)[c("observation", "feature", "phi", "feature_value", "output")]
   if (length(x$outputs) == 1L) out$output <- NULL
   rownames(out) <- NULL
   out
@@ -87,7 +87,7 @@ sv_importance_table <- function(x, by_output = FALSE) {
   arr <- x$phi_array
   d <- dim(arr)
   if (by_output && d[3] > 1L) {
-    res <- do.call(rbind, lapply(seq_len(d[3]), function(o) {
+    res <- basetable::rbindfill(lapply(seq_len(d[3]), function(o) {
       data.frame(feature = x$features,
                  output = x$outputs[o],
                  mean_abs = colMeans(abs(arr[, , o, drop = FALSE][, , 1])),
@@ -98,7 +98,7 @@ sv_importance_table <- function(x, by_output = FALSE) {
     res <- data.frame(feature = x$features, mean_abs = as.numeric(ma),
                       stringsAsFactors = FALSE)
   }
-  res <- res[order(-res$mean_abs), , drop = FALSE]
+  res <- as.data.frame(res)[order(-res$mean_abs), , drop = FALSE]
   rownames(res) <- NULL
   res
 }
