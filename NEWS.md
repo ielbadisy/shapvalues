@@ -1,3 +1,12 @@
+# shapvalues 0.1.2
+
+* Internal table operations use 'basetable' (row binding, the
+  observation-feature merge in `sv_table()`, and the pathway counts in
+  `sv_pathway()`). Values are unchanged.
+* `sv_table()` rows for multi-output models (classification, survival) now
+  follow a fixed order: observation, then feature, then output. Before, the
+  output order within an observation-feature pair was arbitrary.
+
 # shapvalues 0.1.1
 
 * `theme_shapvalues()` is exported. Every `sv_*` plot returns a plain `ggplot`
