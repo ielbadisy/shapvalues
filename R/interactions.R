@@ -85,7 +85,7 @@
 #' @param interact Second feature. `NULL` (default) picks the feature with the
 #'   largest mean absolute interaction with `feature`.
 #' @param title Optional plot title.
-#' @param style Colour style; `NULL` uses the active style (see [sv_style()]).
+#' @param style Colour style; `NULL` uses the active style (see [svstyle()]).
 #' @return A `ggplot` object.
 #' @examples
 #' fit <- lm(mpg ~ wt * hp + disp + drat, data = mtcars)

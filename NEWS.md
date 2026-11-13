@@ -1,3 +1,16 @@
+# shapvalues 0.1.3
+
+* Exported functions are renamed to glued lowercase. The old names remain as deprecated wrappers for one release.
+
+| Old | New |
+|---|---|
+| `sv_concentration()` | `svconcentration()` |
+| `sv_importance_table()` | `svimportancetable()` |
+| `sv_palette()` | `svpalette()` |
+| `sv_style()` | `svstyle()` |
+| `sv_table()` | `svtable()` |
+| `theme_shapvalues()` | `themeshapvalues()` |
+
 # shapvalues 0.1.2
 
 * `sv$phi` is always a matrix (`n_obs x n_feature`) for single-output models,

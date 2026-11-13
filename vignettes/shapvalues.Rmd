@@ -157,8 +157,8 @@ The return value stores the attribution array `phi` (`n x p`, or
 ## Tables
 
 ```{r tables}
-head(sv_table(sv))
-sv_importance_table(sv)
+head(svtable(sv))
+svimportancetable(sv)
 ```
 
 # Plots
@@ -288,12 +288,12 @@ C_k \;=\; \frac{\sum_{i} |\phi_{ki}|\, u_i}{\sum_{i} |\phi_{ki}|},
 EC_k \;=\; \lVert C_k \rVert \in [0, 1].
 $$
 $EC_k$ near $1$ means the prediction is driven by one coherent direction in
-feature space; near $0$ means many competing contributions. `sv_concentration()`
+feature space; near $0$ means many competing contributions. `svconcentration()`
 returns the coordinates, the angle, the dominant feature and $EC$;
 `plot(type = "compass")` draws each observation as a point at $C_k$.
 
 ```{r compass, eval = have_gallery, fig.height = 5}
-head(sv_concentration(svb))
+head(svconcentration(svb))
 plot(svb, type = "compass")
 ```
 
@@ -320,11 +320,11 @@ plot(svb, type = "pathway", rank = 3)
 
 # One colour system
 
-Every plot draws its colours from `sv_style()`: the package's own diverging
+Every plot draws its colours from `svstyle()`: the package's own diverging
 pair `"shapvalues"`, or a `viridisLite` map (`"viridis"`, `"magma"`,
 `"inferno"`, `"plasma"`, `"cividis"`). Structural elements (axes, separators)
-stay constant across styles. Set it globally with `sv_style()` or per call
-with the `style` argument; `sv_palette()` returns the active colours.
+stay constant across styles. Set it globally with `svstyle()` or per call
+with the `style` argument; `svpalette()` returns the active colours.
 
 ```{r styles, eval = have_gallery, fig.width = 6.5, fig.height = 3, fig.show = "hold", out.width = "48%"}
 plot(svb, type = "beeswarm", max_features = 6, title = "shapvalues")

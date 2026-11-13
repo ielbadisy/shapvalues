@@ -1,6 +1,6 @@
 ## Visualisations for `shapvalues` objects. Colour comes from the style system
 ## in palette.R: the default "shapvalues" style, or any 'viridisLite' map, set
-## globally with sv_style() or per call with `style =`. Structural neutrals
+## globally with svstyle() or per call with `style =`. Structural neutrals
 ## (axes, reference lines, text) are constant across styles. ggplot2 is a
 ## Suggests dependency; every entry point checks for it first.
 
@@ -23,14 +23,14 @@
 #' @examples
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
 #'   library(ggplot2)
-#'   ggplot(mtcars, aes(wt, mpg)) + geom_point() + theme_shapvalues()
+#'   ggplot(mtcars, aes(wt, mpg)) + geom_point() + themeshapvalues()
 #'
 #'   fit <- lm(mpg ~ ., data = mtcars)
 #'   sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
 #'   plot(sv) + theme_bw()   # swap in any ggplot2 theme
 #' }
 #' @export
-theme_shapvalues <- function(base_size = 12) {
+themeshapvalues <- function(base_size = 12) {
   ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
       panel.grid        = ggplot2::element_blank(),
@@ -55,7 +55,7 @@ theme_shapvalues <- function(base_size = 12) {
 
 ## internal wrapper: the exported theme plus an optional left axis line
 .sv_theme <- function(base_size = 12, y_axis = FALSE) {
-  th <- theme_shapvalues(base_size)
+  th <- themeshapvalues(base_size)
   if (y_axis)
     th <- th + ggplot2::theme(
       axis.line.y  = ggplot2::element_line(colour = .sv_line, linewidth = 0.5),
@@ -150,7 +150,7 @@ theme_shapvalues <- function(base_size = 12) {
 #' @param max_features Maximum number of features to display, most important
 #'   first.
 #' @param title Optional plot title. `NULL` (default) draws none.
-#' @param style Colour style; `NULL` uses the active style (see [sv_style()]).
+#' @param style Colour style; `NULL` uses the active style (see [svstyle()]).
 #' @return A `ggplot` object.
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
@@ -380,7 +380,7 @@ sv_surv <- function(x, row = 1L, max_features = 8L, title = NULL, style = NULL) 
 #' Single entry point for every `shapvalues` visualisation; `type` picks the
 #' view, and `...` is forwarded to it. All views take `output` (which model
 #' output to show, when there is more than one) and `style` (colour style;
-#' `NULL` uses the active style, see [sv_style()]); most take `title`.
+#' `NULL` uses the active style, see [svstyle()]); most take `title`.
 #'
 #' \describe{
 #'   \item{`"beeswarm"`}{(default) one row per feature, points positioned by
@@ -399,7 +399,7 @@ sv_surv <- function(x, row = 1L, max_features = 8L, title = NULL, style = NULL) 
 #'     `max_features`.}
 #'   \item{`"compass"`}{places each observation by the direction its
 #'     attribution mass points; distance from centre is concentration (see
-#'     [sv_concentration()]). Args: `groups`, `order`, `colour_by`.}
+#'     [svconcentration()]). Args: `groups`, `order`, `colour_by`.}
 #'   \item{`"fingerprint"`}{radial `|SHAP|` signature, one facet per
 #'     observation or per k-means cluster. Args: `rows`, `k`, `max_features`.}
 #'   \item{`"pathway"`}{alluvial diagram of the top-ranked contributors per

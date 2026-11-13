@@ -5,7 +5,7 @@
 ##  - sv_compass:      each observation is a point placed where its attribution
 ##                     mass points; distance from the centre is the explanation
 ##                     concentration EC in [0, 1].
-##  - sv_concentration: the numbers behind the compass.
+##  - svconcentration: the numbers behind the compass.
 ##  - sv_fingerprint:  a radial signature of |SHAP| per feature, per observation
 ##                     or per k-means cluster of SHAP profiles.
 ##  - sv_pathway:      an alluvial of the top-`rank` contributors: node =
@@ -81,9 +81,9 @@
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
 #' sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
-#' head(sv_concentration(sv))
+#' head(svconcentration(sv))
 #' @export
-sv_concentration <- function(x, groups = NULL, output = NULL, order = "cluster") {
+svconcentration <- function(x, groups = NULL, output = NULL, order = "cluster") {
   stopifnot(inherits(x, "shapvalues"))
   .sv_compass_core(x, groups, output, order)$points
 }
@@ -93,10 +93,10 @@ sv_concentration <- function(x, groups = NULL, output = NULL, order = "cluster")
 #' Places every observation where its attribution mass points: features (or
 #' feature groups) sit around a circle, and an observation is drawn at the
 #' `|SHAP|`-weighted average of the feature directions. Distance from the centre
-#' is the explanation concentration `EC` (see [sv_concentration()]); the size of
+#' is the explanation concentration `EC` (see [svconcentration()]); the size of
 #' a point is the total attribution magnitude.
 #'
-#' @inheritParams sv_concentration
+#' @inheritParams svconcentration
 #' @param colour_by `"prediction"`, `"concentration"`, or `"none"`.
 #' @param title Optional plot title.
 #' @param style Colour style; `NULL` uses the active style.

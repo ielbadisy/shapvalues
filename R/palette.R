@@ -11,7 +11,7 @@
 ## Default style "shapvalues" is the package's own steel-blue / brick-rose
 ## pair. The other styles are the 'viridisLite' maps, addressed by their
 ## option letters: "viridis" (D), "magma" (A), "inferno" (B), "plasma" (C),
-## "cividis" (E). Set globally with sv_style(), or per plot with `style =`.
+## "cividis" (E). Set globally with svstyle(), or per plot with `style =`.
 
 .sv_styles <- c("shapvalues", "viridis", "magma", "inferno", "plasma", "cividis")
 
@@ -37,24 +37,24 @@
 #'   `"plasma"`, `"cividis"`.
 #' @return The style, invisibly.
 #' @examples
-#' sv_style("plasma")
-#' sv_style("shapvalues")
+#' svstyle("plasma")
+#' svstyle("shapvalues")
 #' @export
-sv_style <- function(style = c("shapvalues", "viridis", "magma", "inferno",
+svstyle <- function(style = c("shapvalues", "viridis", "magma", "inferno",
                                "plasma", "cividis")) {
   style <- match.arg(style)
   options(shapvalues.style = style)
   invisible(style)
 }
 
-.sv_style <- function() {
+.svstyle <- function() {
   s <- getOption("shapvalues.style", "shapvalues")
   if (length(s) != 1L || !s %in% .sv_styles) "shapvalues" else s
 }
 
 ## resolve a style name to the full colour set used by the plots
 .sv_colours <- function(style = NULL) {
-  if (is.null(style)) style <- .sv_style()
+  if (is.null(style)) style <- .svstyle()
   style <- match.arg(style, .sv_styles)
   neutral <- list(ink = .sv_ink, axis = .sv_axis, line = .sv_line,
                   zero = .sv_zero, grid = .sv_grid, style = style)
@@ -78,14 +78,14 @@ sv_style <- function(style = c("shapvalues", "viridis", "magma", "inferno",
 #' The shapvalues colour palette
 #'
 #' The colours a given style resolves to. Inspection helper, not a user
-#' setting; use [sv_style()] to change the active style.
+#' setting; use [svstyle()] to change the active style.
 #'
 #' @param style Style name; defaults to the active style.
 #' @return A named list: `neg`, `pos`, `mid`, `bar`, `grad_low`, `grad_high`,
 #'   `ramp` (a function of `n`), `qualitative`, and the neutrals `ink`, `axis`,
 #'   `line`, `zero`, `grid`.
 #' @examples
-#' sv_palette()$qualitative
-#' sv_palette("inferno")$ramp(5)
+#' svpalette()$qualitative
+#' svpalette("inferno")$ramp(5)
 #' @export
-sv_palette <- function(style = NULL) .sv_colours(style)
+svpalette <- function(style = NULL) .sv_colours(style)
