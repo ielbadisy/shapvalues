@@ -70,19 +70,19 @@ svb <- shapvalues(rf, X = Boston[, -14], bg = Boston[, -14],
 ## Standard plots
 
 ```{r beeswarm}
-sv_beeswarm(svb)
+plot(svb, type = "beeswarm")
 ```
 
 ```{r importance, fig.height = 3.6}
-sv_importance(svb)
+plot(svb, type = "importance")
 ```
 
 ```{r waterfall}
-sv_waterfall(svb, row = 1)
+plot(svb, type = "waterfall", row = 1)
 ```
 
 ```{r dependence}
-sv_dependence(svb, feature = "rm", colour_by = "lstat")
+plot(svb, type = "dependence", feature = "rm", colour_by = "lstat")
 ```
 
 ## Pairwise interaction values
@@ -92,7 +92,7 @@ svi <- shapvalues(lm(mpg ~ wt * hp + disp + drat + qsec, data = mtcars),
                   mtcars[, c("wt", "hp", "disp", "drat", "qsec")],
                   mtcars[, c("wt", "hp", "disp", "drat", "qsec")],
                   nsim = 120, interactions = TRUE)
-sv_interaction(svi, feature = "wt", interact = "hp")
+plot(svi, type = "interaction", feature = "wt", interact = "hp")
 ```
 
 ## Survival: SurvSHAP(t)
@@ -107,7 +107,7 @@ pf  <- function(object, newdata, times) {
 svs <- shapvalues(cox, veteran[, c("age", "karno", "celltype")],
                   veteran[, c("age", "karno", "celltype")], pred_fun = pf,
                   times = c(30, 90, 180, 270, 365), task = "survival", nsim = 60)
-sv_surv(svs, row = 1)
+plot(svs, type = "surv", row = 1)
 ```
 
 ## Multivariate attribution views
@@ -119,21 +119,21 @@ marginalising one feature at a time.
 from the centre is the explanation concentration `EC` in `[0, 1]`.
 
 ```{r compass, fig.height = 5.4}
-sv_compass(svb)
+plot(svb, type = "compass")
 ```
 
 **Fingerprint** — a radial `|SHAP|` signature, here one per k-means cluster of
 the SHAP profiles.
 
 ```{r fingerprint, fig.height = 3.4}
-sv_fingerprint(svb, k = 4)
+plot(svb, type = "fingerprint", k = 4)
 ```
 
 **Pathway** — an alluvial of the top-ranked contributors: node = feature, flow
 width = observations, flow colour = the sign of the dominant contribution.
 
 ```{r pathway, fig.height = 4.4}
-sv_pathway(svb, rank = 3)
+plot(svb, type = "pathway", rank = 3)
 ```
 
 ## One colour system, selectable styles
@@ -142,8 +142,8 @@ Every plot draws from `svstyle()`: the package's own diverging pair, or a
 `viridisLite` map.
 
 ```{r styles, fig.width = 7, fig.height = 3, fig.show = "hold", out.width = "50%"}
-sv_beeswarm(svb, max_features = 6, title = "style = \"shapvalues\"")
-sv_beeswarm(svb, max_features = 6, title = "style = \"plasma\"", style = "plasma")
+plot(svb, type = "beeswarm", max_features = 6, title = "style = \"shapvalues\"")
+plot(svb, type = "beeswarm", max_features = 6, title = "style = \"plasma\"", style = "plasma")
 ```
 
 ## Benchmark

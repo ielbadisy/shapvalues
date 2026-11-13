@@ -11,6 +11,8 @@
 | `sv_table()` | `svtable()` |
 | `theme_shapvalues()` | `themeshapvalues()` |
 
+* `README.Rmd` now calls the plots through `plot(x, type = ...)` (the `sv_*` plot functions are not exported) and `README.md` is re-knit.
+
 # shapvalues 0.1.2
 
 * `sv$phi` is always a matrix (`n_obs x n_feature`) for single-output models,
