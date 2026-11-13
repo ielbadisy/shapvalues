@@ -39,7 +39,7 @@
 #'
 #' @return An object of class `"shapvalues"`: a list with
 #'   \item{phi}{numeric array `n_obs x n_feature x n_output` of attributions
-#'     (drop to a matrix when `n_output == 1`).}
+#'     (a `n_obs x n_feature` matrix, also for a single row, when `n_output == 1`).}
 #'   \item{baseline}{length-`n_output` vector `E[f(x)]` over the background.}
 #'   \item{prediction}{`n_obs x n_output` matrix of model predictions for `X`.}
 #'   \item{feature_values}{the explained rows, `X[, features]`.}
@@ -172,7 +172,9 @@ shapvalues <- function(object, X, bg = NULL, pred_fun = NULL, features = NULL,
 
   structure(
     list(
-      phi = if (n_out == 1L) phi[, , 1L, drop = TRUE] else phi,
+      phi = if (n_out == 1L) matrix(phi[, , 1L, drop = FALSE], nrow = dim(phi)[1L],
+                                    ncol = dim(phi)[2L],
+                                    dimnames = dimnames(phi)[1:2]) else phi,
       phi_array = phi,
       baseline = baseline,
       prediction = pred_obs,

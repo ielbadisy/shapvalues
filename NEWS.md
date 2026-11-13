@@ -1,5 +1,7 @@
 # shapvalues 0.1.2
 
+* `sv$phi` is always a matrix (`n_obs x n_feature`) for single-output models,
+  also when one row is explained (it used to collapse to a vector).
 * Internal table operations use 'basetable' (row binding, the
   observation-feature merge in `sv_table()`, and the pathway counts in
   `sv_pathway()`). Values are unchanged.

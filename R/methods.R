@@ -90,7 +90,7 @@ sv_importance_table <- function(x, by_output = FALSE) {
     res <- basetable::rbindfill(lapply(seq_len(d[3]), function(o) {
       data.frame(feature = x$features,
                  output = x$outputs[o],
-                 mean_abs = colMeans(abs(arr[, , o, drop = FALSE][, , 1])),
+                 mean_abs = as.numeric(colMeans(abs(arr[, , o, drop = FALSE]), dims = 1L)),
                  stringsAsFactors = FALSE)
     }))
   } else {

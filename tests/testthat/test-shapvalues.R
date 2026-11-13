@@ -130,3 +130,16 @@ test_that("concentration and the multivariate views build", {
   expect_s3_class(sv_pathway(sv, rank = 3), "ggplot")
   expect_s3_class(sv_pathway(sv, rank = 2, signed = TRUE), "ggplot")
 })
+
+test_that("single explained row keeps phi as a 1-row matrix", {
+  fit <- lm(mpg ~ ., data = mtcars)
+  sv <- shapvalues(fit, X = mtcars[1, -1], bg = mtcars[, -1],
+                   nsim = 20, nthreads = 2, seed = 1)
+  expect_true(is.matrix(sv$phi))
+  expect_equal(dim(sv$phi), c(1L, ncol(mtcars) - 1L))
+  expect_equal(colnames(sv$phi), colnames(mtcars)[-1])
+  expect_output(print(sv), "1 obs")
+  expect_s3_class(sv_waterfall(sv), "ggplot")
+  expect_s3_class(sv_importance(sv), "ggplot")
+  expect_equal(nrow(sv_importance_table(sv)), ncol(mtcars) - 1L)
+})
