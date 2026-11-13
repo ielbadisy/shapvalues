@@ -11,7 +11,7 @@ print.shapvalues <- function(x, ...) {
   if (d[3] > 1L)
     cat(sprintf("  outputs  : %d (%s)\n", d[3],
                 paste(utils::head(x$outputs, 4), collapse = ", ")))
-  imp <- sv_importance_table(x)
+  imp <- svimportancetable(x)
   cat("  top features by mean|SHAP|:\n")
   show <- utils::head(imp, 5)
   for (i in seq_len(nrow(show)))
@@ -21,7 +21,7 @@ print.shapvalues <- function(x, ...) {
 
 #' @export
 summary.shapvalues <- function(object, ...) {
-  imp <- sv_importance_table(object)
+  imp <- svimportancetable(object)
   structure(list(importance = imp, task = object$task,
                  baseline = object$baseline), class = "summary.shapvalues")
 }
@@ -43,9 +43,9 @@ print.summary.shapvalues <- function(x, ...) {
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
 #' sv <- shapvalues(fit, mtcars[1:4, -1], mtcars[, -1], nsim = 10, nthreads = 2)
-#' head(sv_table(sv))
+#' head(svtable(sv))
 #' @export
-sv_table <- function(x, ...) {
+svtable <- function(x, ...) {
   stopifnot(inherits(x, "shapvalues"))
   arr <- x$phi_array
   d <- dim(arr)
@@ -69,7 +69,7 @@ sv_table <- function(x, ...) {
 }
 
 #' @export
-as.data.frame.shapvalues <- function(x, ...) sv_table(x)
+as.data.frame.shapvalues <- function(x, ...) svtable(x)
 
 #' Feature importance table (mean absolute SHAP)
 #'
@@ -80,9 +80,9 @@ as.data.frame.shapvalues <- function(x, ...) sv_table(x)
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
 #' sv <- shapvalues(fit, mtcars[1:6, -1], mtcars[, -1], nsim = 10, nthreads = 2)
-#' sv_importance_table(sv)
+#' svimportancetable(sv)
 #' @export
-sv_importance_table <- function(x, by_output = FALSE) {
+svimportancetable <- function(x, by_output = FALSE) {
   stopifnot(inherits(x, "shapvalues"))
   arr <- x$phi_array
   d <- dim(arr)

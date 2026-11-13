@@ -138,7 +138,7 @@ sv_pathway(svb, rank = 3)
 
 ## One colour system, selectable styles
 
-Every plot draws from `sv_style()`: the package's own diverging pair, or a
+Every plot draws from `svstyle()`: the package's own diverging pair, or a
 `viridisLite` map.
 
 ```{r styles, fig.width = 7, fig.height = 3, fig.show = "hold", out.width = "50%"}

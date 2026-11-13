@@ -12,10 +12,10 @@
 #'     `interactions = TRUE`, the pairwise interaction matrix).
 #'   \item [sv_beeswarm()], [sv_importance()], [sv_waterfall()],
 #'     [sv_dependence()], [sv_interaction()], [sv_surv()] - standard plots.
-#'   \item [sv_compass()], [sv_concentration()], [sv_fingerprint()],
+#'   \item [sv_compass()], [svconcentration()], [sv_fingerprint()],
 #'     [sv_pathway()] - multivariate attribution views.
-#'   \item [sv_table()], [sv_importance_table()] - tidy tables.
-#'   \item [sv_style()], [sv_palette()] - the shared colour system.
+#'   \item [svtable()], [svimportancetable()] - tidy tables.
+#'   \item [svstyle()], [svpalette()] - the shared colour system.
 #' }
 #'
 #' @keywords internal

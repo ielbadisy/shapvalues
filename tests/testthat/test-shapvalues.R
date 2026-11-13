@@ -62,10 +62,10 @@ test_that("tables and importance are consistent", {
   fit <- lm(mpg ~ ., data = mtcars)
   sv <- shapvalues(fit, mtcars[1:8, -1], mtcars[, -1], nsim = 20,
                    nthreads = 2, seed = 5)
-  tab <- sv_table(sv)
+  tab <- svtable(sv)
   expect_equal(nrow(tab), 8L * (ncol(mtcars) - 1L))
   expect_true(all(c("observation", "feature", "phi", "feature_value") %in% names(tab)))
-  imp <- sv_importance_table(sv)
+  imp <- svimportancetable(sv)
   expect_equal(nrow(imp), ncol(mtcars) - 1L)
   expect_true(!is.unsorted(rev(imp$mean_abs)))
 })
@@ -101,14 +101,14 @@ test_that("interaction matrix rows sum to the SHAP values", {
 })
 
 test_that("colour styles resolve", {
-  expect_named(sv_palette(), c("ink", "axis", "line", "zero", "grid", "style",
+  expect_named(svpalette(), c("ink", "axis", "line", "zero", "grid", "style",
                                "neg", "pos", "mid", "bar", "grad_low",
                                "grad_high", "ramp", "qualitative"),
                ignore.order = TRUE)
-  expect_length(sv_palette("plasma")$ramp(7), 7L)
-  old <- sv_style("inferno")
+  expect_length(svpalette("plasma")$ramp(7), 7L)
+  old <- svstyle("inferno")
   expect_identical(getOption("shapvalues.style"), "inferno")
-  sv_style("shapvalues")
+  svstyle("shapvalues")
 })
 
 test_that("concentration and the multivariate views build", {
@@ -116,7 +116,7 @@ test_that("concentration and the multivariate views build", {
   fit <- lm(mpg ~ ., data = mtcars)
   sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20,
                    nthreads = 2, seed = 8)
-  ec <- sv_concentration(sv)
+  ec <- svconcentration(sv)
   expect_equal(nrow(ec), nrow(mtcars))
   expect_true(all(ec$ec >= 0 & ec$ec <= 1 + 1e-8))
   expect_true(all(c("observation", "cx", "cy", "ec", "dominant") %in% names(ec)))
@@ -141,5 +141,5 @@ test_that("single explained row keeps phi as a 1-row matrix", {
   expect_output(print(sv), "1 obs")
   expect_s3_class(sv_waterfall(sv), "ggplot")
   expect_s3_class(sv_importance(sv), "ggplot")
-  expect_equal(nrow(sv_importance_table(sv)), ncol(mtcars) - 1L)
+  expect_equal(nrow(svimportancetable(sv)), ncol(mtcars) - 1L)
 })

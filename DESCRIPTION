@@ -1,7 +1,7 @@
 Package: shapvalues
 Type: Package
 Title: Fast Model-Agnostic Shapley Additive Explanations
-Version: 0.1.2
+Version: 0.1.3
 Authors@R: person("Imad", "El Badisy", email = "elbadisyimad@gmail.com", role = c("aut", "cre"))
 Description: Computes Shapley additive explanations (SHAP) for the predictions of
     any supervised model through a single prediction callback, covering
@@ -23,7 +23,7 @@ BugReports: https://github.com/ielbadisy/shapvalues/issues
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
 Imports:
-    basetable (>= 1.4.0),
+    basetable (>= 1.4.5),
     grDevices,
     Rcpp,
     RcppParallel,

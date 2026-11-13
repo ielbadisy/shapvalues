@@ -28,7 +28,7 @@ The `ggplot` object, invisibly (printed as a side effect). You may
 Single entry point for every `shapvalues` visualisation; `type` picks the
 view, and `...` is forwarded to it. All views take `output` (which model
 output to show, when there is more than one) and `style` (colour style;
-`NULL` uses the active style, see [sv_style()]); most take `title`.
+`NULL` uses the active style, see [svstyle()]); most take `title`.
 }
 \details{
 \describe{
@@ -48,7 +48,7 @@ output to show, when there is more than one) and `style` (colour style;
     `max_features`.}
   \item{`"compass"`}{places each observation by the direction its
     attribution mass points; distance from centre is concentration (see
-    [sv_concentration()]). Args: `groups`, `order`, `colour_by`.}
+    [svconcentration()]). Args: `groups`, `order`, `colour_by`.}
   \item{`"fingerprint"`}{radial `|SHAP|` signature, one facet per
     observation or per k-means cluster. Args: `rows`, `k`, `max_features`.}
   \item{`"pathway"`}{alluvial diagram of the top-ranked contributors per
