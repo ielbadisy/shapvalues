@@ -52,7 +52,7 @@ Local accuracy holds exactly for the Monte Carlo estimate:
 
 ``` r
 max(abs(rowSums(sv$phi) + sv$baseline - sv$prediction[, 1]))
-#> [1] 2.344791e-13
+#> [1] 2.380318e-13
 ```
 
 ## A larger model for the gallery
@@ -71,25 +71,25 @@ svb <- shapvalues(rf, X = Boston[, -14], bg = Boston[, -14],
 ## Standard plots
 
 ``` r
-sv_beeswarm(svb)
+plot(svb, type = "beeswarm")
 ```
 
 <img src="man/figures/README-beeswarm-1.png" alt="" width="100%" />
 
 ``` r
-sv_importance(svb)
+plot(svb, type = "importance")
 ```
 
 <img src="man/figures/README-importance-1.png" alt="" width="100%" />
 
 ``` r
-sv_waterfall(svb, row = 1)
+plot(svb, type = "waterfall", row = 1)
 ```
 
 <img src="man/figures/README-waterfall-1.png" alt="" width="100%" />
 
 ``` r
-sv_dependence(svb, feature = "rm", colour_by = "lstat")
+plot(svb, type = "dependence", feature = "rm", colour_by = "lstat")
 ```
 
 <img src="man/figures/README-dependence-1.png" alt="" width="100%" />
@@ -101,7 +101,7 @@ svi <- shapvalues(lm(mpg ~ wt * hp + disp + drat + qsec, data = mtcars),
                   mtcars[, c("wt", "hp", "disp", "drat", "qsec")],
                   mtcars[, c("wt", "hp", "disp", "drat", "qsec")],
                   nsim = 120, interactions = TRUE)
-sv_interaction(svi, feature = "wt", interact = "hp")
+plot(svi, type = "interaction", feature = "wt", interact = "hp")
 ```
 
 <img src="man/figures/README-interaction-1.png" alt="" width="100%" />
@@ -118,7 +118,7 @@ pf  <- function(object, newdata, times) {
 svs <- shapvalues(cox, veteran[, c("age", "karno", "celltype")],
                   veteran[, c("age", "karno", "celltype")], pred_fun = pf,
                   times = c(30, 90, 180, 270, 365), task = "survival", nsim = 60)
-sv_surv(svs, row = 1)
+plot(svs, type = "surv", row = 1)
 ```
 
 <img src="man/figures/README-survival-1.png" alt="" width="100%" />
@@ -133,7 +133,7 @@ distance from the centre is the explanation concentration `EC` in
 `[0, 1]`.
 
 ``` r
-sv_compass(svb)
+plot(svb, type = "compass")
 ```
 
 <img src="man/figures/README-compass-1.png" alt="" width="100%" />
@@ -142,7 +142,7 @@ sv_compass(svb)
 cluster of the SHAP profiles.
 
 ``` r
-sv_fingerprint(svb, k = 4)
+plot(svb, type = "fingerprint", k = 4)
 ```
 
 <img src="man/figures/README-fingerprint-1.png" alt="" width="100%" />
@@ -152,19 +152,19 @@ feature, flow width = observations, flow colour = the sign of the
 dominant contribution.
 
 ``` r
-sv_pathway(svb, rank = 3)
+plot(svb, type = "pathway", rank = 3)
 ```
 
 <img src="man/figures/README-pathway-1.png" alt="" width="100%" />
 
 ## One colour system, selectable styles
 
-Every plot draws from `sv_style()`: the package’s own diverging pair, or
+Every plot draws from `svstyle()`: the package’s own diverging pair, or
 a `viridisLite` map.
 
 ``` r
-sv_beeswarm(svb, max_features = 6, title = "style = \"shapvalues\"")
-sv_beeswarm(svb, max_features = 6, title = "style = \"plasma\"", style = "plasma")
+plot(svb, type = "beeswarm", max_features = 6, title = "style = \"shapvalues\"")
+plot(svb, type = "beeswarm", max_features = 6, title = "style = \"plasma\"", style = "plasma")
 ```
 
 <img src="man/figures/README-styles-1.png" alt="" width="50%" /><img src="man/figures/README-styles-2.png" alt="" width="50%" />
