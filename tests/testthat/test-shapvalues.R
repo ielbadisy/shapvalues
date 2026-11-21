@@ -164,3 +164,18 @@ test_that("plot() returns an unprinted ggplot with editable text and shared colo
   b <- ggplot2::ggplot_build(g)
   expect_setequal(unique(b$data[[2]]$fill), c("#0072B2", "#D55E00"))
 })
+
+test_that("waterfall labels read 'feature = value' and tiny contributions are not '+0' / '-0'", {
+  skip_if_not_installed("ggplot2")
+  set.seed(1)
+  d <- transform(mtcars, z = rnorm(32))
+  d$y <- 30 - 3 * d$wt - 0.03 * d$hp + 0.002 * d$z
+  X <- d[c("wt", "hp", "z")]
+  sv <- shapvalues(lm(y ~ wt + hp + z, d), X, X, nsim = 20, nthreads = 1, seed = 1)
+  g <- plot(sv, type = "waterfall", row = 3)
+  yl <- ggplot2::ggplot_build(g)$layout$panel_params[[1]]$y$get_labels()
+  expect_true(all(c("wt = 2.32", "hp = 93") %in% yl))
+  lb <- ggplot2::ggplot_build(g)$data[[4]]$label
+  expect_false(any(lb %in% c("+0", "-0", "+0.00", "-0.00")))
+  expect_equal(.sv_signed(c(-0.0017, 3.191, 0), 5), c("-0.002", "+3.19", "0"))
+})

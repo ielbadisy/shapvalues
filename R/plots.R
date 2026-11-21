@@ -211,6 +211,17 @@ sv_importance <- function(x, output = NULL, max_features = 15L, title = NULL,
     .sv_theme()
 }
 
+# Signed contribution labels: decimals follow the plot span (at least 2); values that would round to
+# zero keep one significant digit (e.g. "-0.002") instead of printing "+0" / "-0".
+.sv_signed <- function(v, span) {
+  dg <- max(2, 1 - floor(log10(span)))
+  l <- formatC(v, format = "f", digits = dg, flag = "+")
+  z <- round(v, dg) == 0
+  l[z] <- formatC(v[z], format = "fg", digits = 1, flag = "+")
+  l[v == 0] <- "0"
+  l
+}
+
 #' SHAP waterfall plot for a single observation
 #'
 #' Builds the prediction from the baseline \eqn{E[f(X)]} by adding one feature
@@ -244,8 +255,8 @@ sv_waterfall <- function(x, row = 1L, output = NULL, max_features = 10L,
   fmt_v <- function(nm) {
     if (!nm %in% names(fv)) return(nm)
     v <- fv[[nm]]
-    if (is.numeric(v)) sprintf("%s = %s", formatC(v, format = "g", digits = 4), nm)
-    else sprintf("%s = %s", as.character(v), nm)
+    sprintf("%s = %s", nm,
+            if (is.numeric(v)) trimws(formatC(v, format = "g", digits = 4)) else as.character(v))
   }
   ylabs <- vapply(names(phi), fmt_v, character(1))
   df <- data.frame(y = seq_len(ny), shap = as.numeric(phi))
@@ -260,9 +271,7 @@ sv_waterfall <- function(x, row = 1L, output = NULL, max_features = 10L,
     grp = i, sign = df$sign[i],
     tx = c(df$bx[i], df$end[i], df$bx[i]),
     ty = c(df$y[i] - h, df$y[i], df$y[i] + h))))
-  lbl <- sprintf("%+.2f", df$shap)
-  z <- abs(df$shap) < 5e-3
-  lbl[z] <- ifelse(df$shap[z] >= 0, "+0", "-0")
+  lbl <- .sv_signed(df$shap, span)
   df$inside <- abs(df$shap) > 0.16 * span
   df$lx   <- ifelse(df$inside, (df$start + df$end) / 2, df$end)
   df$lcol <- ifelse(df$inside, "in", df$sign)
