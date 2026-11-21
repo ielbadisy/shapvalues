@@ -143,3 +143,24 @@ test_that("single explained row keeps phi as a 1-row matrix", {
   expect_s3_class(sv_importance(sv), "ggplot")
   expect_equal(nrow(svimportancetable(sv)), ncol(mtcars) - 1L)
 })
+
+test_that("plot() returns an unprinted ggplot with editable text and shared colours", {
+  skip_if_not_installed("ggplot2")
+  fit <- lm(mpg ~ ., data = mtcars)
+  sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 1)
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  expect_silent(g <- plot(sv, type = "waterfall", row = 1))
+  expect_s3_class(g, "ggplot")
+  expect_null(g$labels$title)
+  expect_null(g$labels$subtitle)
+  g2 <- plot(sv, type = "importance", title = "T", subtitle = "S", caption = "C") +
+    ggplot2::labs(x = "Mean |SHAP| (mpg)")
+  expect_identical(unlist(g2$labels[c("title", "subtitle", "caption", "x")], use.names = FALSE),
+                   c("T", "S", "C", "Mean |SHAP| (mpg)"))
+  expect_null(suppressMessages(plot(sv, type = "compass"))$labels$subtitle)
+  pal <- svpalette("shapvalues")
+  expect_identical(c(pal$neg, pal$pos), c("#0072B2", "#D55E00"))
+  b <- ggplot2::ggplot_build(g)
+  expect_setequal(unique(b$data[[2]]$fill), c("#0072B2", "#D55E00"))
+})

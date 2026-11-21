@@ -17,7 +17,7 @@ The style, invisibly.
 }
 \description{
 Chooses the colour style used by every `sv_*` plot. `"shapvalues"` (the
-default) is the package's own diverging pair; the others are 'viridisLite'
+default) is the Okabe-Ito blue / vermillion pair; the others are 'viridisLite'
 maps. Individual plots also accept a `style` argument that overrides this
 for one call.
 }

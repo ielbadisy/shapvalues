@@ -8,7 +8,9 @@
   x,
   type = c("beeswarm", "importance", "waterfall", "dependence", "interaction", "surv",
     "compass", "fingerprint", "pathway"),
-  ...
+  ...,
+  subtitle = NULL,
+  caption = NULL
 )
 }
 \arguments{
@@ -19,10 +21,12 @@
 `"pathway"`.}
 
 \item{...}{Arguments for the chosen `type`; see Details.}
+
+\item{subtitle, caption}{Plot text; `NULL` (default) draws none.}
 }
 \value{
-The `ggplot` object, invisibly (printed as a side effect). You may
-  assign it and add further `ggplot2` layers with `+`.
+A `ggplot` object (printed when not assigned), so labels and layers
+  can be added with `+`.
 }
 \description{
 Single entry point for every `shapvalues` visualisation; `type` picks the
@@ -64,5 +68,6 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot(sv, type = "importance")
   plot(sv, type = "dependence", feature = "wt", colour_by = "hp")
   plot(sv, type = "waterfall", row = 1) + ggplot2::theme_bw()
+  plot(sv, type = "importance", title = "Linear model", caption = "mtcars")
 }
 }
