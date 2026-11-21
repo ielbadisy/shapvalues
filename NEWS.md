@@ -1,3 +1,15 @@
+# shapvalues 0.1.4
+
+* `plot()` no longer prints inside the method: it returns the `ggplot` object (printed when not
+  assigned), so knitr no longer draws twice and `+ labs()` or other layers apply to what is drawn
+  (bug fix).
+* `plot()` gains `subtitle` and `caption` arguments (default `NULL`, none drawn); `title` is passed
+  on as before.
+* The compass view no longer adds an automatic subtitle.
+* The default `"shapvalues"` style now uses the colour-blind-safe Okabe-Ito blue (#0072B2) and
+  vermillion (#D55E00) pair and the Okabe-Ito qualitative set, shared with the author's other
+  packages. Plot look only; SHAP values are unchanged.
+
 # shapvalues 0.1.3
 
 * Exported functions are renamed to glued lowercase. The old names remain as deprecated wrappers for one release.

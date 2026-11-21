@@ -143,8 +143,7 @@ sv_compass <- function(x, groups = NULL, output = NULL, order = "cluster",
       colour = .sv_ink, fontface = "bold", size = 3.3) +
     ggplot2::scale_size_continuous(range = c(0.6, 4.5), name = "|SHAP| total") +
     ggplot2::coord_equal(xlim = c(-1.32, 1.32), ylim = c(-1.32, 1.32)) +
-    ggplot2::labs(title = title,
-                  subtitle = "direction = where attribution mass points; radius = concentration (EC)") +
+    ggplot2::labs(title = title) +
     ggplot2::theme_void(base_size = 12) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(colour = .sv_ink, size = 13),

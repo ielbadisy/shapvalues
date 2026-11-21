@@ -8,8 +8,8 @@
 ## Structural neutrals (axes, reference lines, text) are the same in every
 ## style, so the frame reads identically regardless of the data palette.
 ##
-## Default style "shapvalues" is the package's own steel-blue / brick-rose
-## pair. The other styles are the 'viridisLite' maps, addressed by their
+## Default style "shapvalues" is the colour-blind-safe Okabe-Ito blue /
+## vermillion pair shared with the author's other packages. The other styles are the 'viridisLite' maps, addressed by their
 ## option letters: "viridis" (D), "magma" (A), "inferno" (B), "plasma" (C),
 ## "cividis" (E). Set globally with svstyle(), or per plot with `style =`.
 
@@ -29,7 +29,7 @@
 #' Set the plotting style
 #'
 #' Chooses the colour style used by every `sv_*` plot. `"shapvalues"` (the
-#' default) is the package's own diverging pair; the others are 'viridisLite'
+#' default) is the Okabe-Ito blue / vermillion pair; the others are 'viridisLite'
 #' maps. Individual plots also accept a `style` argument that overrides this
 #' for one call.
 #'
@@ -59,9 +59,9 @@ svstyle <- function(style = c("shapvalues", "viridis", "magma", "inferno",
   neutral <- list(ink = .sv_ink, axis = .sv_axis, line = .sv_line,
                   zero = .sv_zero, grid = .sv_grid, style = style)
   if (style == "shapvalues") {
-    lo <- "#3B6EA5"; hi <- "#C1495A"; mid <- "#EFEFEC"
-    qual <- c("#3B6EA5", "#C1495A", "#5B8C5A", "#D6A24A",
-              "#7E6699", "#C97B4A", "#4C4C4C", "#68B0AB")
+    lo <- "#0072B2"; hi <- "#D55E00"; mid <- "#EFEFEC"
+    qual <- c("#0072B2", "#D55E00", "#009E73", "#E69F00",
+              "#CC79A7", "#56B4E9", "#000000", "#F0E442")
     ramp <- function(n) grDevices::colorRampPalette(c(lo, mid, hi))(n)
   } else {
     opt <- .sv_vopt(style)

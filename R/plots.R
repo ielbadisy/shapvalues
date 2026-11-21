@@ -412,8 +412,9 @@ sv_surv <- function(x, row = 1L, max_features = 8L, title = NULL, style = NULL) 
 #'   `"dependence"`, `"interaction"`, `"surv"`, `"compass"`, `"fingerprint"`,
 #'   `"pathway"`.
 #' @param ... Arguments for the chosen `type`; see Details.
-#' @return The `ggplot` object, invisibly (printed as a side effect). You may
-#'   assign it and add further `ggplot2` layers with `+`.
+#' @param subtitle,caption Plot text; `NULL` (default) draws none.
+#' @return A `ggplot` object (printed when not assigned), so labels and layers
+#'   can be added with `+`.
 #' @examples
 #' fit <- lm(mpg ~ ., data = mtcars)
 #' sv <- shapvalues(fit, mtcars[, -1], mtcars[, -1], nsim = 20, nthreads = 2)
@@ -422,12 +423,14 @@ sv_surv <- function(x, row = 1L, max_features = 8L, title = NULL, style = NULL) 
 #'   plot(sv, type = "importance")
 #'   plot(sv, type = "dependence", feature = "wt", colour_by = "hp")
 #'   plot(sv, type = "waterfall", row = 1) + ggplot2::theme_bw()
+#'   plot(sv, type = "importance", title = "Linear model", caption = "mtcars")
 #' }
 #' @export
 #' @importFrom graphics plot
 plot.shapvalues <- function(x, type = c("beeswarm", "importance", "waterfall",
                                         "dependence", "interaction", "surv",
-                                        "compass", "fingerprint", "pathway"), ...) {
+                                        "compass", "fingerprint", "pathway"), ...,
+                            subtitle = NULL, caption = NULL) {
   type <- match.arg(type)
   fn <- switch(type,
                beeswarm = sv_beeswarm, importance = sv_importance,
@@ -435,7 +438,5 @@ plot.shapvalues <- function(x, type = c("beeswarm", "importance", "waterfall",
                interaction = sv_interaction, surv = sv_surv,
                compass = sv_compass, fingerprint = sv_fingerprint,
                pathway = sv_pathway)
-  p <- fn(x, ...)
-  print(p)
-  invisible(p)
+  fn(x, ...) + ggplot2::labs(subtitle = subtitle, caption = caption)
 }
