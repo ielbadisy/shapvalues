@@ -1,3 +1,11 @@
+# shapvalues 0.1.5
+
+* `plot(type = "waterfall")` labelled rows "151 = height" (value before feature); they now read
+  "height = 151" (bug fix).
+* `plot(type = "waterfall")` printed tiny contributions as "+0" / "-0". Labels now use decimals that
+  follow the plot span (at least 2), and values that would round to zero keep one significant digit,
+  e.g. "-0.002" (bug fix). SHAP values unchanged.
+
 # shapvalues 0.1.4
 
 * `plot()` no longer prints inside the method: it returns the `ggplot` object (printed when not
