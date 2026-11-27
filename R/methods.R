@@ -104,7 +104,7 @@ svimportancetable <- function(x, by_output = FALSE) {
 }
 
 .sv_num <- function(v) {
-  if (is.numeric(v)) return(v)
+  if (is.numeric(v)) return(as.double(v))
   if (is.factor(v)) return(as.numeric(v))
   suppressWarnings(as.numeric(as.character(v)))
 }

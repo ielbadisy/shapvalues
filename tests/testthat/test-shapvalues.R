@@ -70,6 +70,14 @@ test_that("tables and importance are consistent", {
   expect_true(!is.unsorted(rev(imp$mean_abs)))
 })
 
+test_that("svtable handles mixed integer and double columns", {
+  d <- data.frame(y = mtcars$mpg, a = as.integer(mtcars$cyl), b = mtcars$wt)
+  sv <- shapvalues(lm(y ~ ., d), d[1:4, -1], d[, -1], nsim = 10, nthreads = 2, seed = 1)
+  tab <- svtable(sv)
+  expect_equal(nrow(tab), 8L)
+  expect_equal(tab$feature_value[tab$feature == "a"], as.double(d$a[1:4]))
+})
+
 test_that("plots build when ggplot2 is available", {
   skip_if_not_installed("ggplot2")
   fit <- lm(mpg ~ ., data = mtcars)

@@ -1,3 +1,8 @@
+# shapvalues 0.1.6
+
+* `svtable()` failed with "conflicting types" when the explained data mixed integer and double
+  columns; feature values are now always stored as double (bug fix).
+
 # shapvalues 0.1.5
 
 * `plot(type = "waterfall")` labelled rows "151 = height" (value before feature); they now read
